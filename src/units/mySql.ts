@@ -18,15 +18,23 @@ interface Limit {
 }
 
 interface ORDER {
-  feild: string[];
+  field: string[];
   DESC?: boolean;
 }
 
+export interface Where<T> {
+  fields: T;
+  isPrefix?: boolean;
+  isOR?: boolean;
+}
+
 export interface MultipleSql<T extends myDbFeild> {
+  conn: PoolConnection;
   multipleInsert: (options: InsertOptions<T>) => {};
   multipleDelete: (options: DeleteOptions<T>) => {};
   multipleUpdate: (options: UpdateOptions<T>) => {};
   multipleSelect: (options: SelectOptions<T>) => {};
+  multipleUnionSelect: (options: SelectOptions<T>[], isAll?: boolean, limitOrder?: LimitOrder) => {};
 }
 
 export interface MultipleTransactionSql<T extends myDbFeild> extends MultipleSql<T> {
@@ -49,57 +57,60 @@ export interface InsertOptions<T extends myDbFeild> {
 export interface DeleteOptions<T extends myDbFeild> {
   table: string,
   wherekv?: T,
-  where?: string,
+  where?: Where<T> | string,
   BINARY?: boolean,
 }
 
 export interface UpdateOptions<T extends myDbFeild> extends InsertOptions<T>, DeleteOptions<T> { }
 
-export interface SelectOptions<T extends myDbFeild> extends DeleteOptions<T> {
-  fieldkv?: string[];
-  field?: string;
+interface LimitOrder {
   LIMIT?: Limit;
   ORDER?: string;
   ORDERarr?: ORDER[];
 }
 
-function matching<T>(wherekv?: T, where?: string, BINARY?: boolean) {
-  let values: any = [];
-  let limit: string = '';
-  if (wherekv) {
-    let keyValue = Object.entries(wherekv).map(([key, value]) => {
-      values.push(value);
-      return `\`${key}\` = ? `;
-    });
-    limit = `WHERE ${BINARY ? ' BINARY' : ''} (${keyValue.join(' AND ')})`;
-  } else if (where) {
-    limit = `WHERE ${BINARY ? ' BINARY' : ''} (${where})`;
-  } else {
-    limit = '';
-  }
-
-  return { limit, values };
+export interface SelectOptions<T extends myDbFeild> extends DeleteOptions<T>, LimitOrder {
+  fieldkv?: string[];
+  field?: string;
 }
 
-function jsonParser(strArr: string[]): ORDER[] {
-  console.log(strArr);
-  let str = strArr.join();
-  let arr = str.match(/\{[^\}]+\}/g);
-  console.log("arr >>>", arr);
-  let oArr = arr ? arr.map(value => {
-    let a = JSON.parse(value);
-    a.feild = a.feild.split(',');
-    return a;
-  }) : [];
-  console.log(oArr);
-  return oArr;
-}
 export class MySql<T extends myDbFeild> {
   private mySQL: MySqlUnit.Mysql;
   
   constructor(mySQL?: MySqlUnit.MySqlConfig) {
     mySQL = Object.assign(MySqlUnit.mysqlOptions, db, mySQL);
     this.mySQL = new MySqlUnit.Mysql(mySQL);
+  }
+
+  query(conn: PoolConnection, sql: string, values: Array<any>) {
+    return myPromiseCatch(async (resolve) => {
+      let result = this.mySQL.query(conn, sql, values);
+      resolve(result);
+    })
+  }
+
+  private matching<T>(wherekv?: T, whereObj?: string | Where<T>, BINARY?: boolean) {
+    return myPromiseCatch(async (resolve) => {
+      let values: any = [];
+      let limit: string = '';
+      if (wherekv) {
+        let keyValue = Object.entries(wherekv).map(([key, value]) => {
+          values.push(value);
+          return `\`${key}\` = ? `;
+        });
+        limit = `WHERE ${BINARY ? ' BINARY' : ''} (${keyValue.join(' AND ')})`;
+      } else if (whereObj) {
+        let w = whereObj;
+        if (whereObj instanceof Object) {
+          let { fields, isOR, isPrefix } = whereObj as Where<T>;
+          w = await this.likeSql(fields as any, isPrefix, isOR);
+        }
+        limit = `WHERE ${BINARY ? ' BINARY' : ''} (${w})`;
+      } else {
+        limit = '';
+      }
+      resolve({ limit, values });
+    })
   }
 
   insertSql(options: InsertOptions<T>) {
@@ -120,7 +131,7 @@ export class MySql<T extends myDbFeild> {
   deleteSql(options: DeleteOptions<T>) {
     return myPromiseCatch(async (resolve, reject) => {
       let { table, where, wherekv, BINARY = false } = options;
-      let { limit, values } = matching<T>(wherekv, where, BINARY);
+      let { limit, values } = await this.matching<T>(wherekv, where, BINARY);
 
       let sql = `DELETE FROM \`${table}\` ${limit}`;
       console.log(sql, values);
@@ -131,7 +142,7 @@ export class MySql<T extends myDbFeild> {
   updateSql(options: UpdateOptions<T>) {
     return myPromiseCatch(async (resolve, reject) => {
       let { table, kv, where, wherekv, BINARY = false } = options;
-      let { limit, values } = matching<T>(wherekv, where, BINARY);
+      let { limit, values } = await this.matching<T>(wherekv, where, BINARY);
 
       let keys = Object.keys(kv).map(key => `\`${key}\` = ?`);
       values = [...Object.values(kv).map(value => value), ...values];
@@ -145,7 +156,7 @@ export class MySql<T extends myDbFeild> {
   selectSql(options: SelectOptions<T>) {
     return myPromiseCatch(async (resolve, reject) => {
       let { table, fieldkv = [], field, where, wherekv, BINARY = false, LIMIT, ORDERarr = [], ORDER } = options;
-      let { limit, values } = matching<T>(wherekv, where, BINARY);
+      let { limit, values } = await this.matching<T>(wherekv, where, BINARY);
       let ORDERFeilds: string;
       let columnName: string;
       let oLIMIT: string;
@@ -154,10 +165,20 @@ export class MySql<T extends myDbFeild> {
 
       oLIMIT = LIMIT ? `LIMIT ${LIMIT.start}, ${LIMIT.length}` : '';
 
-      ORDERFeilds = ORDER ? `ORDER BY ${ORDER}` : ORDERarr.length > 0 ? `ORDER BY ${jsonParser([ORDERarr.join()]).map(obj => {
-        let { feild, DESC } = obj;
-        return DESC ? feild.map(value => `\`${value}\` DESC`).join(', ') : feild.map(value => `\`${value}\` ASC`).join(', ');
-      }).join(', ')}` : '';
+      // ORDERFeilds = ORDER ? `ORDER BY ${ORDER}` : ORDERarr.length > 0 ? `ORDER BY ${jsonParser([ORDERarr.join()]).map(obj => {
+      //   let { feild, DESC } = obj;
+      //   return DESC ? feild.map(value => `\`${value}\` DESC`).join(', ') : feild.map(value => `\`${value}\` ASC`).join(', ');
+      // }).join(', ')}` : '';
+      let oredrStr = ORDERarr instanceof Array && ORDERarr.length > 0 ? ORDERarr.map(orders => {
+        let { field, DESC } = orders;
+        let fields: string[] = [];
+        if (field instanceof Array && field.length != 0) {
+          fields = field.map(values => `\`${values}\`${DESC ? ' DESC ' : ''}`)
+        }
+        return fields.join(', ');
+      }).join(', ').trim() : '';
+
+      ORDERFeilds = ORDER ? `ORDER BY ${ORDER}` : oredrStr ? `ORDER BY ${oredrStr}` : ``;
 
       let sql = `SELECT ${columnName} FROM \`${table}\` ${limit} ${ORDERFeilds} ${oLIMIT}`;
       console.log(sql, values);
@@ -165,16 +186,55 @@ export class MySql<T extends myDbFeild> {
     })
   }
 
+  unionSelectSql(options: SelectOptions<T>[], isAll: boolean = false, limitOrder: LimitOrder = {}) {
+    return myPromiseCatch(async (resolve) => {
+      let sql: string = '';
+      let values: Array<any> = [];
+      if (options instanceof Array && options.length !== 0) {
+        let sqls: string[] = [];
+        let value: Array<any> = [];
+        for (const option of options) {
+          let { sql, values } = await this.selectSql(option);
+          sqls.push(`(${sql})`);
+          value.push(...values);
+        }
+        sql = isAll ? sqls.join(' UNION ALL ') : sqls.join(' UNION ');
+        let { LIMIT, ORDERarr, ORDER } = limitOrder;
+        let oLIMIT = LIMIT ? ` LIMIT ${LIMIT.start}, ${LIMIT.length}` : '';
+        let oredrStr = ORDERarr instanceof Array && ORDERarr.length > 0 ? ORDERarr.map(orders => {
+          let { field, DESC } = orders;
+          let fields: string[] = [];
+          if (field instanceof Array && field.length != 0) {
+            fields = field.map(values => `\`${values}\`${DESC ? ' DESC ' : ''}`)
+          }
+          return fields.join(', ');
+        }).join(', ').trim() : '';
+
+        let ORDERFeilds = ORDER ? ` ORDER BY ${ORDER}` : oredrStr ? ` ORDER BY ${oredrStr}` : ``;
+        sql = `${sql}${ORDERFeilds}${oLIMIT}`
+      }
+      console.log(sql, values)
+      resolve({ sql, values });
+    })
+  }
+
+  likeSql(wherekv: T, isPrefix: boolean = false, isOR: boolean = false) {
+    return myPromiseCatch(async (resolve) => {
+      let sql: string = '';
+      if (wherekv instanceof Object) {
+        let sqls: string[] = [];
+        for (const [key, value] of Object.entries(wherekv)) {
+          let sql = `\`${key}\` LIKE '${isPrefix ? '%' : ''}${value}%'`
+          sqls.push(sql);
+        }
+        sql = sqls.join(isOR ? ' OR ' : ' AND ');
+      }
+      resolve(sql);
+    });
+  }
+
   insert(options: InsertOptions<T>) {
     return myPromiseCatch(async (resolve, reject) => {
-      // let { table, kv } = options;
-      // let keys: string[] = [];
-      // let values: myType[] = [];
-      // for (let [key, value] of Object.entries(kv)) {
-      //   keys.push(`\`${key}\``);
-      //   values.push(value);
-      // }
-      // this.INSERT = `INSERT INTO \`${table}\` (${keys.join(',')}) VALUES (${keys.fill('?').join(',')})`;
       let { sql, values } = await this.insertSql(options);
       let result = await this.mySQL.resultTransaction(sql, values);
       resolve(result);
@@ -183,11 +243,6 @@ export class MySql<T extends myDbFeild> {
 
   delete(options: DeleteOptions<T>) {
     return myPromiseCatch(async (resolve, reject) => {
-      // let { table, where, wherekv, BINARY = false } = options;
-      // let { limit, values } = matching<T>(wherekv, where, BINARY);
-
-      // this.DELETE = `DELETE FROM \`${table}\` ${limit}`;
-      // console.log(this.DELETE, values);
       let { sql, values } = await this.deleteSql(options);
       let result = await this.mySQL.resultTransaction(sql, values);
       resolve(result);
@@ -196,14 +251,6 @@ export class MySql<T extends myDbFeild> {
 
   update(options: UpdateOptions<T>) {
     return myPromiseCatch(async (resolve, reject) => {
-      // let { table, kv, where, wherekv, BINARY = false } = options;
-      // let { limit, values } = matching<T>(wherekv, where, BINARY);
-
-      // let keys = Object.keys(kv).map(key => `\`${key}\` = ?`);
-      // values = [...Object.values(kv).map(value => value), ...values];
-
-      // this.UPDATE = `UPDATE \`${table}\` SET ${keys} ${limit}`
-      // console.log(this.UPDATE, values);
 
       let { sql, values } = await this.updateSql(options);
       let result = await this.mySQL.resultTransaction(sql, values);
@@ -214,23 +261,6 @@ export class MySql<T extends myDbFeild> {
 
   select(options: SelectOptions<T>) {
     return myPromiseCatch(async (resolve, reject) => {
-      // let { table, fieldkv = [], feild, where, wherekv, BINARY = false, LIMIT, ORDERarr = [], ORDER } = options;
-      // let { limit, values } = matching<T>(wherekv, where, BINARY);
-      // let ORDERFeilds: string;
-      // let columnName: string;
-      // let oLIMIT: string;
-
-      // columnName = feild ? feild : fieldkv.length === 0 ? '*' : fieldkv.map(value => `\`${value}\``).join(', ');
-
-      // oLIMIT = LIMIT ? `LIMIT ${LIMIT.start}, ${LIMIT.length}` : '';
-
-      // ORDERFeilds = ORDER ? `ORDER BY ${ORDER}` : ORDERarr.length > 0 ? `ORDER BY ${jsonParser([ORDERarr.join()]).map(obj => {
-      //   let { feild, DESC } = obj;
-      //   return DESC ? feild.map(value => `\`${value}\` DESC`).join(', ') : feild.map(value => `\`${value}\` ASC`).join(', ');
-      // }).join(', ')}` : '';
-
-      // this.SELECT = `SELECT ${columnName} FROM \`${table}\` ${limit} ${ORDERFeilds} ${oLIMIT}`;
-      // console.log(this.SELECT, values);
       let { sql, values } = await this.selectSql(options);
       let result = await this.mySQL.resultTransaction(sql, values);
       resolve(result);
@@ -270,6 +300,14 @@ export class MySql<T extends myDbFeild> {
     }
   }
 
+  private multipleUnionSelect(conn: PoolConnection) {
+    return async (options: SelectOptions<T>[], isAll: boolean = false, limitOrder: LimitOrder = {}) => {
+      let { sql, values } = await this.unionSelectSql(options, isAll, limitOrder);
+      let result = await this.mySQL.query(conn, sql, values);
+      return result;
+    }
+  }
+
   private multipleRollback(conn: PoolConnection) {
     return async () => {
       await conn.rollback();
@@ -284,8 +322,9 @@ export class MySql<T extends myDbFeild> {
         let multipleDelete = this.multipleDelete(conn);
         let multipleUpdate = this.multipleUpdate(conn);
         let multipleSelect = this.multipleSelect(conn);
+        let multipleUnionSelect = this.multipleUnionSelect(conn);
 
-        let query: MultipleSql<T> = { multipleInsert, multipleDelete, multipleUpdate, multipleSelect };
+        let query: MultipleSql<T> = { conn, multipleInsert, multipleDelete, multipleUpdate, multipleSelect, multipleUnionSelect };
 
         let result = await callback(query);
         resolve(result);
@@ -305,8 +344,9 @@ export class MySql<T extends myDbFeild> {
         let multipleDelete = this.multipleDelete(conn);
         let multipleUpdate = this.multipleUpdate(conn);
         let multipleSelect = this.multipleSelect(conn);
+        let multipleUnionSelect = this.multipleUnionSelect(conn);
         let multipleRollback = this.multipleRollback(conn);
-        let query: MultipleTransactionSql<T> = { multipleInsert, multipleDelete, multipleUpdate, multipleSelect, multipleRollback };
+        let query: MultipleTransactionSql<T> = { conn, multipleInsert, multipleDelete, multipleUpdate, multipleSelect, multipleRollback, multipleUnionSelect };
         let result = await callback(query);
         this.mySQL.commit(conn);
         resolve(result);

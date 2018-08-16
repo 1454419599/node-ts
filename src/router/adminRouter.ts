@@ -12,6 +12,12 @@ adminRouter.post('addAccount', adminController.addAccount);
 
 adminRouter.get('getUnit', adminController.getUnit);
 
+adminRouter.get('getUnitLogoUrl', adminController.getUnitLogoUrl);
+
+adminRouter.get('getAccount', adminController.getAccount);
+
+adminRouter.post('updateUnit', adminController.updateUnit);
+
 adminRouter.post('login', adminController.login);
 
 adminRouter.delete('logOut', adminController.logOut);

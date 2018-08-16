@@ -92,18 +92,18 @@ export default {
             unitTreeID = `${unitTreeID},${ID}`
           }
           //判断该账号是否能为该公司添加公司
-          if (new RegExp(unitTreeID).test(selectUnits[0].unitTreeID)) {
+          if (new RegExp(unitTreeID).test(selectUnits[0].unitTreeID) || (role == MyEnum.accountType[1] && parentUnitID == 1)) {
             //判断该公司是否支持添加该类型的公司
             let unitTypeIndex = MyEnum.unitType[selectUnits[0].unitType];
             if (myJSON.unitAddUnit[unitTypeIndex].find(item => `${item}` == MyEnum.unitType[unitType]) !== undefined) {
               json.parentAdminAcountID = parentUnitID == 1 ? ID : selectUnits[0].adminAccountID;
+              json.parentUnit = selectUnits[0].parentUnit;
+              json.unitTreeID = parentUnitID == 1 ? unitTreeID : selectUnits[0].unitTreeID;
               if (json.parentAdminAcountID) {
                 result = await adminServer.addUnit(json);
               } else {
                 result.msg = "请先为上级公司添加管理账号"
               }
-              json.parentUnit = selectUnits[0].parentUnit;
-              json.unitTreeID = parentUnitID == 1 ? unitTreeID : selectUnits[0].unitTreeID;
             } else {
               result.msg = "该公司不支持添加该类型的子公司"
             }
@@ -205,12 +205,46 @@ export default {
   getUnit: async (ctx: myCtx) => {
     await MyFun.controllerTryCatchFinally(ctx, async () => {
       let info = (ctx.session as MyType.mySession).info;
-      let { unitID } = ctx.state.reqJson;
+      let json = ctx.state.reqJson;
+      let { unitID, q } = json;
+      let result: MyType.myMessage = myJSON.message();
 
-      if (unitID) {
-        
+      if ((unitID && typeof parseInt(unitID) === 'number') || q) {
+        result = await adminServer.getUnit(json, info);
+      } else {
+        result.data = await adminServer.selectUnit({ ID: info.affiliatedUnitID }, myJSON.unitField);
+        result.msg = "默认返回登录账号所属公司";
+        result.code = true;
       }
+      return result;
     })
+  },
+
+  getUnitLogoUrl: async (ctx: myCtx) => {
+    await MyFun.controllerTryCatchFinally(ctx, async () => {
+      let info = (ctx.session as MyType.mySession).info;
+      let json = ctx.state.reqJson;
+
+      let result = await adminServer.getUnitLogoUrl(json, info);
+      return result;
+    })
+  },
+
+  getAccount: async (ctx: myCtx) => {
+    await MyFun.controllerTryCatchFinally(ctx, async () => {
+      let info = (ctx.session as MyType.mySession).info;
+      let json = ctx.state.reqJson;
+      let { unitID, q } = json;
+      let result = myJSON.message();
+
+      result = await adminServer.getAccount(json, info);
+
+      return result;
+    });
+  },
+
+  updateUnit: async (ctx: myCtx) => {
+
   },
 
   getView: async (ctx: Context, next: myNext) => {

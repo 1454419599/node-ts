@@ -92,7 +92,7 @@ namespace MyFun {
   }
 
   /**
-   * 
+   * server异常包裹函数
    * @param callback 回调函数
    * @param errMsg 错误时的返回信息
    */
@@ -112,6 +112,47 @@ namespace MyFun {
    */
   export async function verifyPassword(password: string) {
     return /[a-z]/.test(password) && /[A-Z]/.test(password) && /[0-9]/.test(password)
+  }
+  
+  /**
+   * 从一个或多个对象中获取所需的键值
+   * @param keyObj 提供所需键的对象
+   * @param valueObjs 提供键对应值的对象
+   */
+  export async function objFiltrate(keyObj: MyType.myObject, ...valueObjs: MyType.myObject[]) {
+    let obj: MyType.myObject = {};
+    if (valueObjs instanceof Array) {
+      let valueObj = Object.assign({}, ...valueObjs);
+      for (const key in keyObj) {
+        if (keyObj.hasOwnProperty(key)) {
+         obj[key] = valueObj[key]
+        }
+      }
+    }
+    return obj;
+  }
+
+  /**
+   * 删除对象的空值(null, undefined, '')
+   * @param obj 处理对象
+   */
+  export async function deleteObjNullOrundefined(obj:MyType.myObject) {
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        if (obj[key] === undefined || obj[key] === null || obj[key] === '') {
+          delete obj[key];
+        }
+      }
+    }
+    return obj;
+  }
+
+  export function isArrayAndDontEmpty(array: any) {
+    let bol: boolean = false;
+    if (array instanceof Array && array.length !== 0) {
+      bol = true;
+    }
+    return bol;
   }
 }
 

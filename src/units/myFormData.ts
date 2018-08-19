@@ -63,6 +63,8 @@ export default function myFormData() {
       case 'GET':
         await get(ctx, next);
         break;
+      case 'PUT':
+      case 'DELETE':
       case 'POST':
         await get(ctx, next);
         await post(ctx, next);

@@ -85,7 +85,7 @@ export default {
       //判断该账号是否支持添加公司
       if (roleInex !== undefined) {
         //获取上级公司的相关信息
-        let selectUnits = await adminServer.selectUnit({ ID: parentUnitID }, ['parentUnit', 'unitTreeID', 'adminAccountID', 'unitType']);
+        let selectUnits = await adminServer.selectUnit({ ID: parentUnitID }, ['unitTreeID', 'adminAccountID', 'unitType']);
         //判断公司信息是否存在
         if (selectUnits instanceof Array && selectUnits.length !== 0) {
           if (role === MyEnum.accountType[1]) {
@@ -97,7 +97,7 @@ export default {
             let unitTypeIndex = MyEnum.unitType[selectUnits[0].unitType];
             if (myJSON.unitAddUnit[unitTypeIndex].find(item => `${item}` == MyEnum.unitType[unitType]) !== undefined) {
               json.parentAdminAcountID = parentUnitID == 1 ? ID : selectUnits[0].adminAccountID;
-              json.parentUnit = selectUnits[0].parentUnit;
+              // json.parentUnit = selectUnits[0].parentUnit;
               json.unitTreeID = parentUnitID == 1 ? unitTreeID : selectUnits[0].unitTreeID;
               if (json.parentAdminAcountID) {
                 result = await adminServer.addUnit(json);
@@ -226,6 +226,7 @@ export default {
       let json = ctx.state.reqJson;
 
       let result = await adminServer.getUnitLogoUrl(json, info);
+
       return result;
     })
   },
@@ -234,17 +235,99 @@ export default {
     await MyFun.controllerTryCatchFinally(ctx, async () => {
       let info = (ctx.session as MyType.mySession).info;
       let json = ctx.state.reqJson;
-      let { unitID, q } = json;
-      let result = myJSON.message();
 
-      result = await adminServer.getAccount(json, info);
+      let result = await adminServer.getAccount(json, info);
 
       return result;
     });
   },
 
   updateUnit: async (ctx: myCtx) => {
+    await MyFun.controllerTryCatchFinally(ctx, async () => {
+      let info = (ctx.session as MyType.mySession).info;
+      let json = ctx.state.reqJson;
+      let logo = ctx.state.files.logo;
+      let { unitID } = json;
+      let result: MyType.myMessage = myJSON.message();
+      let newLogoPath = undefined;
 
+      if (logo && !(logo instanceof Array)) {
+        let logoResult = await MyFun.saveFile(logo, StaticValue.logoSaveAbsolutePath, unitID);
+        if ((logoResult as MyType.myMessage).code) {
+          let msg = (logoResult as MyType.myMessage).msg;
+          json.logo = `${StaticValue.logoSaveRelativePath}/${msg.newName}`;
+          newLogoPath = msg.newPath;
+        } else {
+          json.logo = undefined;
+        }
+      } else {
+        if (logo instanceof Array && logo.length !== 0) {
+          logo.forEach(element => {
+            MyFun.deleteFile(element.path)
+          });
+        }
+        json.logo = undefined;
+      }
+
+      if (unitID) {
+        result = await adminServer.updateUnit(json, info);
+      } else {
+        result.msg = "请指定修改公司的ID, 字段unitID"
+      }
+
+      if (newLogoPath && !result.code) {
+        MyFun.deleteFile(newLogoPath);
+      }
+      return result;
+    });
+  },
+
+  updateAccount: async (ctx: myCtx) => {
+    await MyFun.controllerTryCatchFinally(ctx, async () => {
+      let info = (ctx.session as MyType.mySession).info;
+      let json = ctx.state.reqJson;
+      let icon = ctx.state.files.icon;
+      let { accountID } = json;
+      let result: MyType.myMessage = myJSON.message();
+      let newIconPath = undefined;
+      if (!accountID) {
+        json.accountID = info.ID;
+      }
+
+      if (icon && !(icon instanceof Array)) {
+        let iconResult = await MyFun.saveFile(icon, StaticValue.iconSaveAbsolutePath, json.accountID);
+        let { code, msg } = iconResult as any;
+        
+        if (code) {
+          let { newName, newPath } = msg;
+          json.icon = `${StaticValue.iconSaverelativePath}/${newName}`;
+          newIconPath = newPath;
+        } else {
+          json.icon = undefined;
+        }
+
+      } else {
+        if (icon instanceof Array && icon.length !== 0) {
+          icon.forEach(element => {
+            MyFun.deleteFile(element.path)
+          });
+        }
+        json.icon = undefined;
+      }
+
+      result = await adminServer.updateAccout(json, info);
+      
+      if (newIconPath && !result.code) {
+        MyFun.deleteFile(newIconPath);
+      }
+      return result;
+    });
+  },
+
+  transferUnit: async(ctx: myCtx) => {
+    await MyFun.controllerTryCatchFinally(ctx, async () => {
+      
+    });
   },
 
   getView: async (ctx: Context, next: myNext) => {

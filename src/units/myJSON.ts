@@ -11,7 +11,7 @@ export default {
 
   //获取公司时默认查看的字段
   unitField: [MyEnum.unitBaseField[0], MyEnum.unitBaseField[1], MyEnum.unitBaseField[2], MyEnum.unitBaseField[3], MyEnum.unitBaseField[4],
-    MyEnum.unitBaseField[5], MyEnum.unitBaseField[6], MyEnum.unitBaseField[7], MyEnum.unitBaseField[8], MyEnum.unitBaseField[9], MyEnum.unitBaseField[10], MyEnum.unitBaseField[11]],
+    MyEnum.unitBaseField[6], MyEnum.unitBaseField[7], MyEnum.unitBaseField[8], MyEnum.unitBaseField[9], MyEnum.unitBaseField[10], MyEnum.unitBaseField[11]],
 
   //获取账号时默认查看的字段
   accountField: [MyEnum.accountInfoField[0], MyEnum.accountInfoField[1], MyEnum.accountInfoField[2], MyEnum.accountInfoField[4],

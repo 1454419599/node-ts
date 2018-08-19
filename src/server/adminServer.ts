@@ -1,4 +1,4 @@
-import { MySql, SelectOptions, Where } from './../units/mySql';
+import { MySql, SelectOptions, Where, UpdateOptions } from './../units/mySql';
 import MyFun from "../units/myFun";
 import MyType from '../units/myType';
 import MyEnum from '../units/myEnum';
@@ -43,7 +43,7 @@ export default {
             fieldkv: [
               MyEnum.unitBaseField[1],  //unitName
               MyEnum.unitBaseField[2],  //unitType
-              MyEnum.unitBaseField[12]  //unitTreeID
+              MyEnum.unitBaseField[11]  //unitTreeID
             ]
           });
           if (resultUnits instanceof Array && resultUnits.length !== 0) {
@@ -114,7 +114,7 @@ export default {
             wherekv: {
               ID: unitID
             },
-            fieldkv: [MyEnum.unitBaseField[9], MyEnum.unitBaseField[11]]
+            fieldkv: [MyEnum.unitBaseField[8], MyEnum.unitBaseField[10]]
           };
 
           let unitResult = await query.multipleSelect(option);
@@ -164,7 +164,7 @@ export default {
             wherekv: {
               ID: unitID
             },
-            fieldkv: [MyEnum.unitBaseField[12]]
+            fieldkv: [MyEnum.unitBaseField[11]]
           });
           if (unitResults instanceof Array && unitResults.length !== 0) {
             let { unitTreeID } = unitResults[0];
@@ -232,22 +232,239 @@ export default {
               }
             }))
           });
-          let accountResult = await query.multipleUnionSelect(options, false, {LIMIT, ORDERarr});
-          let {sql} = await mySql.unionSelectSql(options);
+          let accountResult = await query.multipleUnionSelect(options, false, { LIMIT, ORDERarr });
+          let { sql } = await mySql.unionSelectSql(options);
           sql = `SELECT COUNT(*) AS \`count\` FROM (${sql}) a`;
-          let countResult = await mySql.query(query.conn, sql, []);
+          let countResult = await query.multipleQuery(sql, []);
           if (countResult instanceof Array && countResult.length !== 0) {
             countResult = countResult[0];
           } else {
             countResult = 0;
           }
           result.code = true;
-          result.data = {accounts: accountResult, count: countResult};
+          result.data = { accounts: accountResult, count: countResult };
           result.msg = `q = ${q}, 查询成功`
         }
       });
       return result;
     });
+  },
+
+  updateUnit: async (json: any, info: MyType.mySessionInfo) => {
+    return await MyFun.serverTryCatch(async () => {
+      let { unitID } = json;
+      let result: MyType.myMessage = myJSON.message();
+
+      unitID = parseInt(unitID);
+
+      if (isNaN(unitID)) {
+        result.msg = "请指定正确类型的unitID";
+        return result;
+      }
+
+      let keyObj = {
+        logo: undefined,
+        unitName: undefined,
+        unitType: undefined,
+        linkman: undefined,
+        TEL: undefined,
+        unitAddress: undefined,
+        unitEmail: undefined,
+        unitURL: undefined,
+        remark: undefined,
+        lastChangeTime: undefined,
+      }
+
+      let obj = await MyFun.objFiltrate(keyObj, json, { lastChangeTime: new Date().toLocaleString() });
+      console.log(obj);
+      await MyFun.deleteObjNullOrundefined(obj);
+      console.log(obj);
+
+      let mySql = new MySql<MyDb.UnitBaseTableField>();
+      await mySql.MultipleResultTransaction(async (query) => {
+        let unitResult = await query.multipleSelect({
+          table: MyEnum.dbName[0],
+          wherekv: {
+            ID: unitID
+          },
+          fieldkv: [MyEnum.unitBaseField[11], MyEnum.unitBaseField[10], MyEnum.unitBaseField[8]]
+        });
+
+        if (unitResult instanceof Array && unitResult.length !== 0) {
+          let { logo, unitTreeID, parentUnitID } = unitResult[0];
+          let infoUnitTreeID = info.unitTreeID;
+          if (MyEnum.accountType[1] == info.role) {
+            infoUnitTreeID = `${infoUnitTreeID},${info.ID}`
+          }
+          console.log(infoUnitTreeID, unitTreeID, new RegExp(infoUnitTreeID).test(unitTreeID))
+          if (new RegExp(infoUnitTreeID).test(unitTreeID)) {
+            let updateUnitType = (obj as MyDb.UnitBaseTableField).unitType
+            if (updateUnitType) {
+              let parentunitResult = await query.multipleSelect({
+                table: MyEnum.dbName[0],
+                wherekv: {
+                  ID: parentUnitID
+                },
+                fieldkv: [MyEnum.unitBaseField[2]]
+              });
+              if (parentunitResult instanceof Array && parentunitResult.length !== 0) {
+                let { unitType } = parentunitResult[0];
+                console.log(unitType, myJSON.unitAddUnit[MyEnum.unitType[unitType]], updateUnitType)
+
+                if (myJSON.unitAddUnit[MyEnum.unitType[unitType]].find(value => MyEnum.unitType[value] == updateUnitType) === undefined) {
+                  result.msg = `unitType = ${updateUnitType}, 该公司不能修改为该类型的公司`;
+                  return;
+                }
+              } else {
+                throw `数据库数据错误 => unitID = ${unitID}, 错误字段 parentUnitID`
+              }
+            }
+
+            let updateResult = await query.multipleUpdate({
+              table: MyEnum.dbName[0],
+              wherekv: {
+                ID: unitID
+              },
+              kv: obj as MyDb.UnitBaseTableField
+            });
+            if ((updateResult as any).serverStatus == 2 && (updateResult as any).affectedRows > 0) {
+              if ((obj as any).logo) {
+                MyFun.deleteFile(`${StaticValue.publicPath}/${logo}`)
+              }
+              result.code = true;
+              result.msg = "修改成功";
+            }
+            result.data = updateResult;
+          } else {
+            result.msg = `该账号没有修改该公司的权限，请使用该公司的上级管理账号修改公司信息`
+          }
+        } else {
+          result.msg = `unitID = ${unitID} 公司不存在`
+        }
+      });
+      return result;
+    });
+  },
+
+  updateAccout: async (json: any, info: MyType.mySessionInfo) => {
+    return await MyFun.serverTryCatch(async () => {
+      let { accountID } = json;
+      let result: MyType.myMessage = myJSON.message();
+      let keyObj = {
+        icon: undefined,
+        userName: undefined,
+        role: undefined,
+        extensionNumber: undefined,
+        sex: undefined,
+        realName: undefined,
+        lastChangeTime: undefined
+      };
+
+      let obj = await MyFun.objFiltrate(keyObj, json, { lastChangeTime: new Date().toLocaleString() });
+      await MyFun.deleteObjNullOrundefined(obj);
+
+      let mySql = new MySql<MyType.myDbFeild>();
+
+      await mySql.MultipleResultTransaction(async (query) => {
+        let accountResult = await query.multipleSelect({
+          table: MyEnum.dbName[1],
+          wherekv: {
+            ID: accountID
+          },
+          fieldkv: [MyEnum.accountInfoField[1], MyEnum.accountInfoField[3], MyEnum.accountInfoField[9], MyEnum.accountInfoField[8], MyEnum.accountInfoField[4]]
+        });
+
+        if (accountResult instanceof Array && accountResult.length !== 0) {
+          let { icon, password, accountTreeID, affiliatedUnitID, role } = accountResult[0];
+          if (new RegExp(info.accountTreeID).test(accountTreeID)) {
+
+            if (json.oldPassword && json.newPassword) {
+              if (await myMd5.getMd5(json.oldPassword) == password) {
+                obj.password = await myMd5.getMd5(json.newPassword);
+              } else {
+                result.msg = "旧密码不正确"
+                return;
+              }
+            }
+
+            if (obj.role) {
+              if (accountID == info.ID) {
+                result.msg = "不能修改账号自身的 role 字段, 请使用上级管理账号修改本账号的 role 字段"
+                return;
+              } else {
+                let unitResult = await query.multipleSelect({
+                  table: MyEnum.dbName[0],
+                  wherekv: {
+                    ID: affiliatedUnitID
+                  },
+                  fieldkv: [MyEnum.unitBaseField[2], MyEnum.unitBaseField[12]]
+                })
+                if (unitResult instanceof Array && unitResult.length !== 0) {
+                  let { unitType, adminAccountID } = unitResult[0];
+                  if (myJSON.unitAddAccountType[MyEnum.unitType[unitType]].find(value => MyEnum.accountType[value] == obj.role) === undefined) {
+                    result.msg = "该账号所在公司不支持该类型的账号，请检查 role 字段";
+                    return;
+                  } else {
+                    if ((myJSON.theOnlyAccount.find(value => MyEnum.accountType[value] == obj.role) !== undefined)) {
+                      if (adminAccountID) {
+                        result.msg = "管理账号已经存在";
+                        return;
+                      } else {
+                        await query.multipleUpdate({
+                          table: MyEnum.dbName[0],
+                          wherekv: {
+                            ID: affiliatedUnitID
+                          },
+                          kv: {
+                            adminAccountID: accountID
+                          }
+                        })
+                      }
+                    } else {
+                      if (myJSON.theOnlyAccount.find(value => MyEnum.accountType[value] == role) !== undefined) {
+                        await query.multipleUpdate({
+                          table: MyEnum.dbName[0],
+                          wherekv: {
+                            ID: affiliatedUnitID
+                          },
+                          kv: {
+                            adminAccountID: undefined,
+                            lastChangeTime: new Date().toLocaleString()
+                          }
+                        })
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
+            let updateResult = await query.multipleUpdate({
+              table: MyEnum.dbName[1],
+              wherekv: {
+                ID: accountID
+              },
+              kv: obj as MyDb.UserInfoTableField
+            });
+            let { serverStatus, affectedRows } = updateResult as any;
+            if (serverStatus == 2 && affectedRows > 0) {
+              if (obj.icon) {
+                MyFun.deleteFile(`${StaticValue.publicPath}/${icon}`)
+              }
+              result.code = true;
+              result.msg = "账号更新成功"
+            }
+            result.data = updateResult
+
+          } else {
+            result.msg = "当前账号不支持修改该账号，请使用该账号或上级管理账号修改该账号信息"
+          }
+        } else {
+          result.msg = `accountID = ${accountID}, 该账号不存在`
+        }
+      })
+      return result;
+    })
   },
 
   addAccount: async (json: any) => {
@@ -326,7 +543,7 @@ export default {
 
   addUnit: async (json: any) => {
     return await MyFun.serverTryCatch(async () => {
-      let { unitName, unitType, linkman, TEL, parentUnit, unitAddress, unitEmail, unitURL, remark, parentUnitID, unitTreeID, parentAdminAcountID, logo } = json;
+      let { unitName, unitType, linkman, TEL, unitAddress, unitEmail, unitURL, remark, parentUnitID, unitTreeID, parentAdminAcountID, logo } = json;
       let result: MyType.myMessage = myJSON.message();
       let mySql = new MySql<MyType.myDbFeild>();
       try {
@@ -348,7 +565,6 @@ export default {
               unitType,
               linkman,
               TEL,
-              parentUnit,
               unitAddress,
               unitEmail,
               unitURL,
@@ -422,7 +638,7 @@ export default {
             wherekv: {
               ID: unitID
             },
-            fieldkv: [MyEnum.unitBaseField[12]]
+            fieldkv: [MyEnum.unitBaseField[11]]
           });
           if (selectResult instanceof Array && selectResult.length !== 0) {
             let parentUnitTreeID = selectResult[0].unitTreeID;
@@ -477,7 +693,7 @@ export default {
 
           let unitResults = await query.multipleUnionSelect(options, false, { LIMIT, ORDERarr });
           let sql = `SELECT COUNT(\`ID\`) AS count FROM (${(await mySql.unionSelectSql(options)).sql}) as a`
-          let countResult = await mySql.query(query.conn, sql, []);
+          let countResult = await query.multipleQuery(sql, []);
           if (countResult instanceof Array && countResult.length !== 0) {
             countResult = countResult[0].count;
           } else {

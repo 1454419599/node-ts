@@ -6,6 +6,7 @@ import { MultipleSql, MultipleTransactionSql } from './mySql';
 namespace MyType {
   export type myCtx = MyCtx;
   export type mySession = MySession;
+  export type myObject = MyInterface.MyObject
   export type mySessionInfo = Info;
   export type myNext = MyInterface.lext;
   export type myMessage = MyInterface.MyMessage;

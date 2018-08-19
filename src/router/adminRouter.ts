@@ -6,9 +6,13 @@ let adminRouter: Router = new Router();
 
 adminRouter.all('*', adminController.all);
 
-adminRouter.post('addUnit', adminController.addUnit);
+adminRouter.post('login', adminController.login);
 
-adminRouter.post('addAccount', adminController.addAccount);
+adminRouter.delete('logOut', adminController.logOut);
+
+adminRouter.put('addUnit', adminController.addUnit);
+
+adminRouter.put('addAccount', adminController.addAccount);
 
 adminRouter.get('getUnit', adminController.getUnit);
 
@@ -16,11 +20,11 @@ adminRouter.get('getUnitLogoUrl', adminController.getUnitLogoUrl);
 
 adminRouter.get('getAccount', adminController.getAccount);
 
-adminRouter.post('updateUnit', adminController.updateUnit);
+adminRouter.put('updateUnit', adminController.updateUnit);
 
-adminRouter.post('login', adminController.login);
+adminRouter.put('updateAccount', adminController.updateAccount);
 
-adminRouter.delete('logOut', adminController.logOut);
+adminRouter.put('transferUnit', adminController.transferUnit);
 
 adminRouter.get(':viewName', adminController.getView);
 

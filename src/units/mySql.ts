@@ -34,6 +34,7 @@ export interface MultipleSql<T extends myDbFeild> {
   multipleDelete: (options: DeleteOptions<T>) => {};
   multipleUpdate: (options: UpdateOptions<T>) => {};
   multipleSelect: (options: SelectOptions<T>) => {};
+  multipleQuery: (sql: string, values: Array<any>) => {};
   multipleUnionSelect: (options: SelectOptions<T>[], isAll?: boolean, limitOrder?: LimitOrder) => {};
 }
 
@@ -300,6 +301,13 @@ export class MySql<T extends myDbFeild> {
     }
   }
 
+  private multipleQuery(conn: PoolConnection) {
+    return async (sql: string, values: Array<any>) => {
+      let result = await this.mySQL.query(conn, sql, values);
+      return result;
+    }
+  }
+
   private multipleUnionSelect(conn: PoolConnection) {
     return async (options: SelectOptions<T>[], isAll: boolean = false, limitOrder: LimitOrder = {}) => {
       let { sql, values } = await this.unionSelectSql(options, isAll, limitOrder);
@@ -322,9 +330,10 @@ export class MySql<T extends myDbFeild> {
         let multipleDelete = this.multipleDelete(conn);
         let multipleUpdate = this.multipleUpdate(conn);
         let multipleSelect = this.multipleSelect(conn);
+        let multipleQuery = this.multipleQuery(conn);
         let multipleUnionSelect = this.multipleUnionSelect(conn);
 
-        let query: MultipleSql<T> = { conn, multipleInsert, multipleDelete, multipleUpdate, multipleSelect, multipleUnionSelect };
+        let query: MultipleSql<T> = { conn, multipleInsert, multipleDelete, multipleUpdate, multipleQuery, multipleSelect, multipleUnionSelect };
 
         let result = await callback(query);
         resolve(result);
@@ -344,9 +353,10 @@ export class MySql<T extends myDbFeild> {
         let multipleDelete = this.multipleDelete(conn);
         let multipleUpdate = this.multipleUpdate(conn);
         let multipleSelect = this.multipleSelect(conn);
+        let multipleQuery = this.multipleQuery(conn);
         let multipleUnionSelect = this.multipleUnionSelect(conn);
         let multipleRollback = this.multipleRollback(conn);
-        let query: MultipleTransactionSql<T> = { conn, multipleInsert, multipleDelete, multipleUpdate, multipleSelect, multipleRollback, multipleUnionSelect };
+        let query: MultipleTransactionSql<T> = { conn, multipleInsert, multipleDelete, multipleUpdate, multipleSelect, multipleQuery, multipleRollback, multipleUnionSelect };
         let result = await callback(query);
         this.mySQL.commit(conn);
         resolve(result);

@@ -4,7 +4,6 @@ CREATE TABLE IF NOT EXISTS `unit_base_table` (
   `unitType` enum('经销商','装机厂','终端','') CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '单位类型',
   `linkman` varchar(16) NOT NULL COMMENT '联系人',
   `TEL` varchar(11) NOT NULL COMMENT '联系电话',
-  `parentUnit` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '上级单位',
   `unitAddress` varchar(128) DEFAULT NULL COMMENT '单位地址',
   `unitEmail` varchar(64) DEFAULT NULL COMMENT '电子邮箱',
   `unitURL` varchar(32) DEFAULT NULL COMMENT '单位网址',

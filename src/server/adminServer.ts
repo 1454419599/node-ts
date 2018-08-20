@@ -416,11 +416,23 @@ export default {
           let { icon, password, accountTreeID, affiliatedUnitID, role } = accountResult[0];
           if (new RegExp(info.accountTreeID).test(accountTreeID)) {
 
-            if (json.oldPassword && json.newPassword) {
-              if (await myMd5.getMd5(json.oldPassword) == password) {
-                obj.password = await myMd5.getMd5(json.newPassword);
+            if (json.newPassword) {
+              if (await MyFun.verifyPassword(json.newPassword)) {
+                if (accountID != info.ID) {
+                  obj.password = await myMd5.getMd5(json.newPassword);
+                } else if (json.oldPassword) {
+                  if (await myMd5.getMd5(json.oldPassword) == password) {
+                    obj.password = await myMd5.getMd5(json.newPassword);
+                  } else {
+                    result.msg = "旧密码不正确"
+                    return;
+                  }
+                } else {
+                  result.msg = "修改自身账号密码请输入旧密码及新密码"
+                  return;
+                }
               } else {
-                result.msg = "旧密码不正确"
+                result.msg = "密码必须有大小字母、小写字母及数字一起构成"
                 return;
               }
             }

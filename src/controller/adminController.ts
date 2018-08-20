@@ -787,7 +787,9 @@ export default {
 
   transferUnit: async (ctx: myCtx) => {
     await MyFun.controllerTryCatchFinally(ctx, async () => {
-
+      let info = (ctx.session as MyType.mySession).info;
+      let json = ctx.state.reqJson;
+      
     });
   },
 

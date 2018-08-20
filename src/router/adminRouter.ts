@@ -26,6 +26,8 @@ adminRouter.put('updateAccount', adminController.updateAccount);
 
 adminRouter.put('transferUnit', adminController.transferUnit);
 
+adminRouter.get('api', adminController.api);
+
 adminRouter.get(':viewName', adminController.getView);
 
 export default adminRouter;

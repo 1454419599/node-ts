@@ -54,4 +54,5 @@ export default async (app: Koa) => {
 
   app.use(staticFiles(path.resolve(process.cwd(), './icon')));
   app.use(staticFiles(path.resolve(process.cwd(), './public')));
+  app.use(staticFiles(path.resolve(process.cwd(), './doc')));
 }

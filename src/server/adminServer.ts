@@ -102,12 +102,15 @@ export default {
       let { affiliatedUnitID } = info;
       let { unitID } = json;
       let flag = true;
+      let result: MyType.myMessage = myJSON.message();
+
       unitID = parseInt(unitID);
       if (typeof unitID !== 'number' || isNaN(unitID)) {
         unitID = affiliatedUnitID;
       }
       let mySql = new MySql<MyDb.UnitBaseTableField>();
-      return await mySql.multipleResult(async (query) => {
+
+      await mySql.multipleResult(async (query) => {
         while (flag) {
           let option: SelectOptions<MyDb.UnitBaseTableField> = {
             table: MyEnum.dbName[0],
@@ -123,23 +126,29 @@ export default {
             let { logo, parentUnitID } = unitResult[0];
             if (logo) {
               flag = false;
+              result.code = true;
+              result.msg = "查询成功";
+              result.data = logo;
               return logo;
             } else {
               unitID = parentUnitID;
             }
           } else {
-            return 'unitID不存在';
+            result.msg = 'LOGO查询失败';
+            return;
           }
         }
       });
+
+      return result;
     })
   },
 
   getAccount: async (json: any, info: MyType.mySessionInfo) => {
     return await MyFun.serverTryCatch(async () => {
       let result: MyType.myMessage = myJSON.message();
-      let { unitID, q, page, length, orderField, desc, fasttips, field } = json;
-      let { ID, accountTreeID, unitTreeID, role } = info;
+      let { unitID, q, page, length, orderField, desc, fasttips, field, minDate, maxDate } = json;
+      let { ID, accountTreeID, role } = info;
       let fieldkv = myJSON.accountField;
 
       page = parseInt(page);
@@ -147,9 +156,11 @@ export default {
       desc = desc && desc == 1 ? true : false;
       unitID = parseInt(unitID);
       length = isNaN(length) || length <= 0 ? 30 : length;
+
       let start = isNaN(page) || page <= 1 ? 0 : (page - 1) * length;
       let isPrefix = fasttips && fasttips != 1 ? true : false;
       let ORDERarr: any = undefined;
+
       if (MyEnum.accountInfoField[orderField] !== undefined) {
         ORDERarr = [{ field: [orderField], DESC: desc }];
       }
@@ -158,7 +169,41 @@ export default {
 
       let mySql = new MySql<MyType.myDbFeild>();
       await mySql.multipleResult(async (query) => {
-        if (!isNaN(unitID)) {
+        if (q) {
+
+          let fields = [MyEnum.accountInfoField[2], MyEnum.accountInfoField[7]];
+          if (MyEnum.accountInfoField[field] !== undefined) {
+            fields = [field];
+          }
+          let options: SelectOptions<MyDb.UserInfoTableField>[] = [];
+          let option: SelectOptions<MyDb.UserInfoTableField> = {
+            table: MyEnum.dbName[1],
+            fieldkv,
+          }
+          fields.forEach(value => {
+            options.push(Object.assign({}, option, {
+              where: {
+                fields: {
+                  [value]: q,
+                  accountTreeID
+                },
+                isPrefix
+              }
+            }))
+          });
+          let accountResult = await query.multipleUnionSelect(options, false, { LIMIT, ORDERarr });
+          let { sql } = await mySql.unionSelectSql(options);
+          sql = `SELECT COUNT(*) AS \`count\` FROM (${sql}) a`;
+          let countResult = await query.multipleQuery(sql, []);
+          if (countResult instanceof Array && countResult.length !== 0) {
+            countResult = countResult[0].count;
+          } else {
+            countResult = 0;
+          }
+          result.code = true;
+          result.data = { accounts: accountResult, count: countResult };
+          result.msg = `q = ${q}, 查询成功`
+        } else if (unitID) {
           let unitResults = await query.multipleSelect({
             table: MyEnum.dbName[0],
             wherekv: {
@@ -197,7 +242,7 @@ export default {
               option.field = 'COUNT(`ID`) AS `count`';
               let countResult = await query.multipleSelect(option);
               if (countResult instanceof Array && countResult.length != 0) {
-                countResult = countResult[0]
+                countResult = countResult[0].count
               } else {
                 countResult = 0;
               }
@@ -210,40 +255,33 @@ export default {
           } else {
             result.msg = `unitID = ${unitID}, 不存在该公司`
           }
-        } else if (q) {
-
-          let fields = [MyEnum.accountInfoField[2], MyEnum.accountInfoField[7]];
-          if (MyEnum.accountInfoField[field] !== undefined) {
-            fields = [field];
-          }
-          let options: SelectOptions<MyDb.UserInfoTableField>[] = [];
+        } else if (minDate || maxDate) {
+          let whereSql = ` \`createTime\` BETWEEN '${minDate ? minDate : new Date(0).toLocaleString()}' AND '${maxDate ? maxDate : new Date().toLocaleString()}' `;
           let option: SelectOptions<MyDb.UserInfoTableField> = {
             table: MyEnum.dbName[1],
+            where: ` ${ await mySql.likeSql({
+              accountTreeID
+            })} AND (${whereSql})`,
             fieldkv,
+            LIMIT,
+            ORDERarr
           }
-          fields.forEach(value => {
-            options.push(Object.assign({}, option, {
-              where: {
-                fields: {
-                  [value]: q,
-                  accountTreeID
-                },
-                isPrefix
-              }
-            }))
-          });
-          let accountResult = await query.multipleUnionSelect(options, false, { LIMIT, ORDERarr });
-          let { sql } = await mySql.unionSelectSql(options);
-          sql = `SELECT COUNT(*) AS \`count\` FROM (${sql}) a`;
-          let countResult = await query.multipleQuery(sql, []);
+          let accountResults = await query.multipleSelect(option);
+          delete option.fieldkv;
+          delete option.LIMIT;
+          delete option.ORDERarr;
+          option.field = 'COUNT(`ID`) AS count';
+          let countResult = await query.multipleSelect(option);
+
           if (countResult instanceof Array && countResult.length !== 0) {
-            countResult = countResult[0];
+            countResult = countResult[0].count;
           } else {
             countResult = 0;
           }
+
           result.code = true;
-          result.data = { accounts: accountResult, count: countResult };
-          result.msg = `q = ${q}, 查询成功`
+          result.data = { accounts: accountResults, count: countResult };
+          result.msg = `${minDate} - ${maxDate}, 查询成功`
         }
       });
       return result;
@@ -601,7 +639,7 @@ export default {
 
   getUnit: async (json: any, session: MyType.mySessionInfo) => {
     return await MyFun.serverTryCatch(async () => {
-      let { unitID, q, page, length, desc, orderField, fasttips, field } = json;
+      let { unitID, q, page, length, desc, orderField, fasttips, field, minDate, maxDate } = json;
       let { unitTreeID, role, ID } = session;
       let table = MyEnum.dbName[0];
       let fieldkv = myJSON.unitField;
@@ -614,6 +652,7 @@ export default {
       if (field && MyEnum.unitBaseField[field] === undefined) {
         field = undefined
       }
+
       desc = desc == 1 ? true : false;
       let isPrefix = fasttips == 1 ? false : true;
 
@@ -672,6 +711,32 @@ export default {
             result.msg = "未找到公司，请检查unitID";
             return;
           }
+        } else if (minDate || maxDate) {
+          let whereSql = `\`createTime\` BETWEEN '${minDate ? minDate : new Date(0).toLocaleString()}' AND '${maxDate ? maxDate : new Date().toLocaleString()}'`;
+          let option: SelectOptions<MyDb.UnitBaseTableField> = {
+            table: MyEnum.dbName[0],
+            where: ` ${await mySql.likeSql({
+              unitTreeID
+            })} AND (${whereSql}) `,
+            fieldkv,
+            LIMIT,
+            ORDERarr
+          }
+          let unitResults = await query.multipleSelect(option);
+          delete option.fieldkv;
+          option.field = 'COUNT (`ID`) AS count';
+          delete option.LIMIT;
+          delete option.ORDERarr;
+          let countResult = await query.multipleSelect(option);
+
+          if (countResult instanceof Array && countResult.length !== 0) {
+            countResult = countResult[0].count;
+          } else {
+            countResult = 0;
+          }
+          result.code = true;
+          result.msg = `${minDate} - ${maxDate} 结果`
+          result.data = { units: unitResults, count: countResult };
         } else if (q) {
           let option: SelectOptions<MyDb.UnitBaseTableField> = {
             table,
@@ -702,7 +767,7 @@ export default {
           result.code = true;
           result.msg = `${q}结果`
           result.data = { units: unitResults, count: countResult };
-        }
+        } 
       });
       return result;
     });

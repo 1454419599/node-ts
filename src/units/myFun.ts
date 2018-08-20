@@ -16,7 +16,7 @@ namespace MyFun {
       let oldPath = file.path;
       let oldName = file.name;
       let { ext } = path.parse(oldName);
-      let name = `${new Date().toLocaleDateString()}_${Math.random().toString().substr(2)}_${oldName}`;
+      let name = `${new Date().toLocaleDateString()}_${Math.random().toString().substr(2)}_${oldName}`.replace(/\/|\\/g, '-');
       let newName = `${
         saveFileName
           ? isPrefix ? `${saveFileName}_${name}` : `${saveFileName}${ext}`
@@ -146,7 +146,7 @@ namespace MyFun {
     }
     return obj;
   }
-
+  
   export function isArrayAndDontEmpty(array: any) {
     let bol: boolean = false;
     if (array instanceof Array && array.length !== 0) {

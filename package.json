@@ -1,6 +1,6 @@
 {
   "name": "ts-node-wedding",
-  "version": "1.0.1",
+  "version": "1.2.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -34,7 +34,6 @@
     "typescript": "^2.9.2"
   },
   "devDependencies": {
-    "@types/node": "^10.5.1",
     "@types/formidable": "^1.0.31",
     "@types/ip": "0.0.31",
     "@types/koa": "^2.0.46",
@@ -45,6 +44,12 @@
     "@types/koa-views": "^2.0.3",
     "@types/log4js": "^2.3.5",
     "@types/mysql": "^2.15.5",
-    "@types/redis": "^2.8.6"
+    "@types/node": "^10.5.1",
+    "@types/redis": "^2.8.6",
+    "apidoc": "^0.17.6"
+  },
+  "apidoc": {
+    "title": "Custom apiDoc browser title",
+    "url": "https://39.108.114.59"
   }
 }

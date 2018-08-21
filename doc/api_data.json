@@ -844,6 +844,70 @@
   },
   {
     "type": "PUT",
+    "url": "/packToTransfer",
+    "title": "打包转移",
+    "name": "____1",
+    "group": "Update",
+    "version": "0.1.0",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "sourceUnitID",
+            "description": "<p>源公司ID，需要打包转移的公司ID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": false,
+            "field": "targetSeniorAccountID",
+            "description": "<p>目标账号ID，打包转移至高级管理账号的ID</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Request-Example:",
+          "content": "{\n   sourceUnitID: 2,\n   targetSeniorAccountID: 3\n}",
+          "type": "type"
+        }
+      ]
+    },
+    "success": {
+      "fields": {
+        "200": [
+          {
+            "group": "200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "code",
+            "description": "<p>打包转移是否成功</p>"
+          },
+          {
+            "group": "200",
+            "type": "String",
+            "optional": false,
+            "field": "msg",
+            "description": "<p>描述信息</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "Success-Response:",
+          "content": "{\n   \"code\": true,\n   \"msg\": \"打包转移成功，公司共:2条,账号共：4条\"\n}",
+          "type": "type"
+        }
+      ]
+    },
+    "filename": "src/controller/adminController.ts",
+    "groupTitle": "Update"
+  },
+  {
+    "type": "PUT",
     "url": "/updateAccount",
     "title": "更新账号信息",
     "name": "______",

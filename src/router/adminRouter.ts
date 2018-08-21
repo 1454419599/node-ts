@@ -24,7 +24,7 @@ adminRouter.put('updateUnit', adminController.updateUnit);
 
 adminRouter.put('updateAccount', adminController.updateAccount);
 
-adminRouter.put('transferUnit', adminController.transferUnit);
+adminRouter.put('PackToTransfer', adminController.PackToTransfer);
 
 adminRouter.get('api', adminController.api);
 

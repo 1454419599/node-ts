@@ -259,7 +259,7 @@ export default {
           let whereSql = ` \`createTime\` BETWEEN '${minDate ? minDate : new Date(0).toLocaleString()}' AND '${maxDate ? maxDate : new Date().toLocaleString()}' `;
           let option: SelectOptions<MyDb.UserInfoTableField> = {
             table: MyEnum.dbName[1],
-            where: ` ${ await mySql.likeSql({
+            where: ` ${await mySql.likeSql({
               accountTreeID
             })} AND (${whereSql})`,
             fieldkv,
@@ -283,6 +283,7 @@ export default {
           result.data = { accounts: accountResults, count: countResult };
           result.msg = `${minDate} - ${maxDate}, 查询成功`
         }
+        return;
       });
       return result;
     });
@@ -379,6 +380,7 @@ export default {
         } else {
           result.msg = `unitID = ${unitID} 公司不存在`
         }
+        return;
       });
       return result;
     });
@@ -512,6 +514,7 @@ export default {
         } else {
           result.msg = `accountID = ${accountID}, 该账号不存在`
         }
+        return ;
       })
       return result;
     })
@@ -779,9 +782,118 @@ export default {
           result.code = true;
           result.msg = `${q}结果`
           result.data = { units: unitResults, count: countResult };
-        } 
+        }
+        return;
       });
       return result;
     });
+  },
+
+  PackToTransfer: async (json: any, info: MyType.mySessionInfo) => {
+    return await MyFun.serverTryCatch(async () => {
+      let { sourceUnitID, targetSeniorAccountID, unitTreeID, accountTreeID, adminAccountID, parentAdminAcountID } = json;
+      let result: MyType.myMessage = myJSON.message();
+      let mySql = new MySql<MyType.myDbFeild>();
+      let unitCount = 0;
+      let accountCount = 0;
+
+      await mySql.MultipleResultTransaction(async (query) => {
+        let sourceAdminAccount = await query.multipleSelect({
+          table: MyEnum.dbName[1],
+          wherekv: {
+            ID: parentAdminAcountID
+          },
+          fieldkv: [MyEnum.accountInfoField[9]]
+        });
+
+        let sourceAdminAccountTreeID = ''
+        if (sourceAdminAccount instanceof Array && sourceAdminAccount.length != 0) {
+          sourceAdminAccountTreeID = sourceAdminAccount[0].accountTreeID;
+        } else {
+          result.msg = "源公司的上级高级管理账号不存在";
+          return;
+        }
+        //打包转移公司
+        let selectUnitResults = await query.multipleSelect({
+          table: MyEnum.dbName[0],
+          where: {
+            fields: {
+              unitTreeID
+            },
+          },
+          fieldkv: [MyEnum.unitBaseField[11], MyEnum.unitBaseField[0]]
+        });
+
+        if (selectUnitResults instanceof Array && selectUnitResults.length != 0) {
+          for (const values of selectUnitResults) {
+            let { ID, unitTreeID } = values;
+            await query.multipleUpdate({
+              table: MyEnum.dbName[0],
+              wherekv: {
+                ID
+              },
+              kv: {
+                unitTreeID: (unitTreeID as string).replace(new RegExp(`^${sourceAdminAccountTreeID}`), accountTreeID)
+              }
+            })
+            unitCount++;
+          }
+
+          await query.multipleUpdate({
+            table: MyEnum.dbName[0],
+            wherekv: {
+              ID: sourceUnitID
+            },
+            kv: {
+              parentAdminAcountID: targetSeniorAccountID
+            }
+          })
+        }
+
+        //打包转移账号
+        let adminAccountResults = await query.multipleSelect({
+          table: MyEnum.dbName[1],
+          wherekv: {
+            ID: adminAccountID
+          },
+          fieldkv: [MyEnum.accountInfoField[9]]
+        });
+
+        let targetAccountTreeID = accountTreeID;
+        if (adminAccountResults instanceof Array && adminAccountResults.length != 0) {
+          let {accountTreeID} = adminAccountResults[0];
+
+          let accountResults = await query.multipleSelect({
+            table: MyEnum.dbName[1],
+            where: {
+              fields: {
+                accountTreeID
+              }
+            },
+            fieldkv: [MyEnum.accountInfoField[9], MyEnum.accountInfoField[0]]
+          });
+
+          if (accountResults instanceof Array && accountResults.length != 0) {
+            for (const values of accountResults) {
+              let { ID, accountTreeID } = values;
+              await query.multipleUpdate({
+                table: MyEnum.dbName[1],
+                wherekv: {
+                  ID
+                },
+                kv: {
+                  accountTreeID: (accountTreeID as string).replace(new RegExp(`^${sourceAdminAccountTreeID}`), targetAccountTreeID)
+                }
+              })
+              accountCount++;
+            }
+          }
+        }
+        result.msg = `打包转移成功，公司共：${unitCount}条,账号共：${accountCount}条`
+        result.code = true;
+        return ;
+      });
+      return result;
+    })
   }
 }

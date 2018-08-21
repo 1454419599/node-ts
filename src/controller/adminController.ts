@@ -598,7 +598,7 @@ export default {
       if (q || unitID || minDate || maxDate) {
         result = await adminServer.getAccount(json, info);
       } else {
-        result.data = await adminServer.selectAccount({ID: info.ID}, myJSON.accountField);
+        result.data = await adminServer.selectAccount({ ID: info.ID }, myJSON.accountField);
         result.code = true;
         result.msg = '查询成功'
       }
@@ -785,11 +785,85 @@ export default {
     });
   },
 
-  transferUnit: async (ctx: myCtx) => {
+  /**
+   * 
+   * @api {PUT} /packToTransfer 打包转移
+   * @apiName 打包转移1
+   * @apiGroup Update
+   * @apiVersion  0.1.0
+   * 
+   * 
+   * @apiParam  {Number} sourceUnitID 源公司ID，需要打包转移的公司ID
+   * @apiParam  {Number} targetSeniorAccountID 目标账号ID，打包转移至高级管理账号的ID
+   * 
+   * @apiSuccess (200) {Boolean} code 打包转移是否成功
+   * @apiSuccess (200) {String} msg 描述信息
+   * 
+   * @apiParamExample  {type} Request-Example:
+   * {
+   *    sourceUnitID: 2,
+   *    targetSeniorAccountID: 3
+   * }
+   * 
+   * 
+   * @apiSuccessExample {type} Success-Response:
+   * {
+   *    "code": true,
+   *    "msg": "打包转移成功，公司共:2条,账号共：4条"
+   * }
+   * 
+   * 
+   */
+  PackToTransfer: async (ctx: myCtx) => {
     await MyFun.controllerTryCatchFinally(ctx, async () => {
       let info = (ctx.session as MyType.mySession).info;
       let json = ctx.state.reqJson;
-      
+      let { sourceUnitID, targetSeniorAccountID } = json;
+      let { ID, role } = info;
+      let result: MyType.myMessage = myJSON.message();
+
+      if (ID != 1 || role != MyEnum.accountType[0]) {
+        result.msg = "只有超级管理员才能执行打包转移";
+        return result;
+      }
+
+      let unitSourceResult = await adminServer.selectUnit({ ID: sourceUnitID }, [MyEnum.unitBaseField[10], MyEnum.unitBaseField[11], MyEnum.unitBaseField[12], MyEnum.unitBaseField[13]]);
+      if (unitSourceResult instanceof Array && unitSourceResult.length != 0) {
+        let { parentUnitID, unitTreeID, adminAccountID, parentAdminAcountID } = unitSourceResult[0];
+        if (parentUnitID != 1) {
+          result.msg = "只能打包转移高级管理员直属的公司";
+          return result;
+        } else {
+          json.unitTreeID = unitTreeID;
+          json.adminAccountID = adminAccountID;
+          json.parentAdminAcountID = parentAdminAcountID;
+        }
+      } else {
+        result.msg = `不存在ID = ${sourceUnitID} 的公司`;
+        return result;
+      }
+
+      let accountResult = await adminServer.selectAccount({ ID: targetSeniorAccountID }, [MyEnum.accountInfoField[9], MyEnum.accountInfoField[4]])
+      if (accountResult instanceof Array && accountResult.length != 0) {
+        let { accountTreeID, role } = accountResult[0];
+        if (role == MyEnum.accountType[1]) {
+          json.accountTreeID = accountTreeID;
+        } else {
+          result.msg = "目标账号不是高级管理员账号，只能将公司打包转移至高级管理员下面";
+          return result;
+        }
+      } else {
+        result.msg = `不存在ID = ${targetSeniorAccountID} 的账号`;
+        return result;
+      }
+
+      if (sourceUnitID && targetSeniorAccountID) {
+        result = await adminServer.PackToTransfer(json, info);
+      } else {
+        result.msg = "请同时提供 sourceUnit，targetUnit"
+      }
+
+      return result;
     });
   },
 

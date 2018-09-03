@@ -1,4 +1,6 @@
 import { Context } from 'koa';
+import MyEnum from './myEnum';
+import MyType from './myType';
 
 export namespace MyInterface {
 
@@ -6,12 +8,12 @@ export namespace MyInterface {
     (): Promise<any>
   }
 
-  export interface MyObject extends Object{
+  export interface MyObject extends Object {
     [field: string]: any;
   }
 
   export interface MyMessage {
-    code: boolean;
+    status: MyType.successAndFailure;
     msg: any;
     data?: any;
     [field: string]: any;

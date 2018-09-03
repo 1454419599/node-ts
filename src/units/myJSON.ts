@@ -1,4 +1,5 @@
 import MyEnum from "./myEnum";
+import MyType from "./myType";
 
 interface IArray {
   [index: number]: Array<number>;
@@ -6,8 +7,8 @@ interface IArray {
 }
 export default {
   DBName: "electricity",
-  notLogin: { code: false, message: "请先登录" },
-  message: () => { return { code: false, msg: '未初始化信息' } },
+  notLogin: { status: 0, msg: "请先登录" } as MyType.myMessage,
+  message: (): MyType.myMessage => { return { status: 0, msg: '未初始化信息' } },
 
   //获取公司时默认查看的字段
   unitField: [MyEnum.unitBaseField[0], MyEnum.unitBaseField[1], MyEnum.unitBaseField[2], MyEnum.unitBaseField[3], MyEnum.unitBaseField[4],
@@ -15,7 +16,8 @@ export default {
 
   //获取账号时默认查看的字段
   accountField: [MyEnum.accountInfoField[0], MyEnum.accountInfoField[1], MyEnum.accountInfoField[2], MyEnum.accountInfoField[4],
-    MyEnum.accountInfoField[5], MyEnum.accountInfoField[6], MyEnum.accountInfoField[7], MyEnum.accountInfoField[8]],
+    MyEnum.accountInfoField[5], MyEnum.accountInfoField[6], MyEnum.accountInfoField[7], MyEnum.accountInfoField[8], MyEnum.accountInfoField[13]],
+    
   //允许添加公司及账号的角色
   allowAddRole: [
     MyEnum.accountType.超级管理员,
@@ -83,4 +85,16 @@ export default {
       MyEnum.accountType.普通用户
     ],
   } as IArray,
+
+  //允许添加设备的角色
+  addDeviceRole: [MyEnum.accountType.超级管理员, MyEnum.accountType.高级管理员, MyEnum.accountType.经销商管理员, 
+    MyEnum.accountType.终端用户管理员, MyEnum.accountType.组机厂管理员, MyEnum.accountType.工程师],
+
+  //允许添加维修记录的角色
+  addMaintenanceRole: [MyEnum.accountType.超级管理员, MyEnum.accountType.高级管理员, MyEnum.accountType.经销商管理员, 
+    MyEnum.accountType.终端用户管理员, MyEnum.accountType.组机厂管理员, MyEnum.accountType.工程师, MyEnum.accountType.操作员 ],
+
+  //允许添加保养记录的角色
+  addUpkeepRole: [MyEnum.accountType.超级管理员, MyEnum.accountType.高级管理员, MyEnum.accountType.经销商管理员, 
+    MyEnum.accountType.终端用户管理员, MyEnum.accountType.组机厂管理员, MyEnum.accountType.工程师, MyEnum.accountType.操作员 ],
 }

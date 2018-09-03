@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS `account_info_table` (
   `extensionNumber` varchar(16) DEFAULT NULL COMMENT '分机号码',
   `sex` enum('男','女') NOT NULL DEFAULT '男' COMMENT '性别',
   `realName` varchar(16) NOT NULL COMMENT '真实姓名',
+  `email` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT 'E-mail',
   `affiliatedUnitID` int(11) unsigned NOT NULL COMMENT '所属单位ID',
   `accountTreeID` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '所有上级账号ID',
   `createTime` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -43,7 +44,66 @@ CREATE TABLE IF NOT EXISTS `account_info_table` (
   CONSTRAINT `account_info_table_ibfk_1` FOREIGN KEY (`affiliatedUnitID`) REFERENCES `unit_base_table` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE IF NOT EXISTS `device_detail_table` (
+  `ID` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `DTUId` varchar(32) NOT NULL COMMENT 'DTU编号',
+  `DTUModel` varchar(16) DEFAULT NULL COMMENT 'DTU型号',
+  `siteName` varchar(64) NOT NULL COMMENT '站点名称',
+  `controllerModel` varchar(64) DEFAULT NULL COMMENT '控制器型号',
+  `communicationNumber` varchar(32) NOT NULL COMMENT '通信号码',
+  `registrationDate` datetime NOT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '注册日期',
+  `licenseExpirationDate` datetime NOT NULL COMMENT '许可到期日',
+  `uploadPhoto` varchar(128) DEFAULT NULL COMMENT '照片上传',
+  `controllerBrand` varchar(64) DEFAULT NULL COMMENT '控制器品牌',
+  `controllerType` enum('控制器类型1','控制器类型2') NOT NULL COMMENT '控制器类型',
+  `operatorORengineer` varchar(64) NOT NULL COMMENT '操作员/工程师',
+  `licensePeriod` varchar(255) NOT NULL COMMENT '许可周期',
+  `deviceStatus` enum('运行','待机','离线','报警') NOT NULL COMMENT '设备状态',
+  `other` text COMMENT '其他',
+  `unitModel` varchar(64) NOT NULL COMMENT '机组型号',
+  `engineModel` varchar(64) NOT NULL COMMENT '发动机型号',
+  `speedControlType` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '调速类型',
+  `speedControlBoardModel` varchar(64) DEFAULT NULL COMMENT '调速板型号',
+  `pressureRegulatorType` varchar(64) DEFAULT NULL COMMENT '调压器类型',
+  `manufacturer` varchar(64) DEFAULT NULL COMMENT '生产厂家',
+  `electricGeneratorModel` varchar(64) NOT NULL COMMENT '发电机型号',
+  `actuatorType` varchar(64) DEFAULT NULL COMMENT '执行器类型',
+  `fuelTankCapacity` float NOT NULL COMMENT '油箱容量',
+  `reference` text COMMENT '备注',
+  `accessory` varchar(128) DEFAULT NULL COMMENT '附件',
+  `electronicFenceStatus` enum('否','是') NOT NULL DEFAULT '否' COMMENT '电子围栏状态',
+  `electronicFenceScope` varchar(255) DEFAULT NULL COMMENT '围栏范围设置',
+  `createTime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '添加时间',
+  PRIMARY KEY (`ID`),
+  UNIQUE KEY `DTUId` (`DTUId`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE IF NOT EXISTS `device_maintenance_table` (
+  `ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `DTU` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT 'DTU',
+  `controllerType` varchar(64) DEFAULT NULL COMMENT '控制器类型',
+  `maintenanceOrganization` varchar(64) NOT NULL COMMENT '维修机构',
+  `maintenancePersonnel` varchar(64) NOT NULL COMMENT '维修人员',
+  `maintenanceCost` decimal(10,2) NOT NULL COMMENT '维修费用',
+  `maintenanceTime` datetime NOT NULL COMMENT '维修时间',
+  `maintenanceContent` text NOT NULL COMMENT '维修内容',
+  `createTime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '添加时间',
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `device_upkeep_table` (
+  `ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `DTU` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT 'DTU',
+  `controllerType` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '控制器类型',
+  `upkeepPersonnel` varchar(255) NOT NULL COMMENT '保养人员',
+  `upkeepEstablishment` varchar(64) NOT NULL COMMENT '保养机构',
+  `upkeepCost` decimal(10,2) NOT NULL COMMENT '保养费用',
+  `upkeepTime` datetime NOT NULL COMMENT '保养时间',
+  `nextUpkeepDate` datetime NOT NULL COMMENT '下次保养日期',
+  `upkeepContent` text NOT NULL COMMENT '保养内容',
+  `createTime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `unit_base_table` (`unitName`,`unitType`,`linkman`,`TEL`,,`unitAddress`,`unitEmail`,`unitURL`,`logo`,`remark`,`parentUnitID`,`unitTreeID`,`adminAccountID`,`parentAdminAcountID`)
 VALUES ("重庆铭贝科技有限公司", "", "余小勇", "4006117011", "unitAddress", "unitEmail", "unitURL", "logo", "remark", 1, "1", "1", "1");

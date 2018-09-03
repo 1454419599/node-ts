@@ -1,7 +1,7 @@
 define({ "api": [
   {
-    "type": "PUT",
-    "url": "/addAccunt",
+    "type": "POST",
+    "url": "/accunt",
     "title": "添加账号信息",
     "name": "____",
     "group": "ADD",
@@ -71,7 +71,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Request-Example:",
-          "content": "{\n   affiliatedUnitID: 1,\n   role: 高级管理员,\n   userName: admin1,\n   password: Aa1,\n   sex: 女,\n   realName: 小一,\n   extensionNumber: 12454657878,\n   icon: 头像图片\n}",
+          "content": "{\n   \"affiliatedUnitID\": 1,\n   \"role\": \"高级管理员\",\n   \"userName\": \"admin1\",\n   \"password\": \"Aa1\",\n   \"sex\": \"女\",\n   \"realName\": \"小一\",\n   \"extensionNumber\": \"12454657878\",\n   \"icon\": \"头像图片\"\n}",
           "type": "json"
         }
       ]
@@ -81,10 +81,10 @@ define({ "api": [
         "200": [
           {
             "group": "200",
-            "type": "Boolean",
+            "type": "Int",
             "optional": false,
-            "field": "code",
-            "description": "<p>添加账号是否成功</p>"
+            "field": "status",
+            "description": "<p>添加账号是否成功(0,1)</p>"
           },
           {
             "group": "200",
@@ -98,7 +98,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n   code: true,\n   msg: 添加账号成功\n}",
+          "content": "{\n   \"status\": 1,\n   \"msg\": \"添加账号成功\"\n}",
           "type": "json"
         }
       ]
@@ -107,12 +107,12 @@ define({ "api": [
     "groupTitle": "ADD"
   },
   {
-    "type": "PUT",
-    "url": "/addUnit",
+    "type": "POST",
+    "url": "/unit",
     "title": "添加公司信息",
     "name": "______",
     "group": "ADD",
-    "version": "0.1.1",
+    "version": "0.1.0",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -191,7 +191,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Request-Example:",
-          "content": "{\n     parentUnitID : 1,\n     unitName: 子公司,\n     unitType: 经销商,\n     linkman: 小一,\n     TEL: 13866666666,\n     unitAddress: 公司地址,\n     unitEmail: 公司邮箱,\n     unitURL: 公司网址,\n     remark: 备注,\n     logo: LOGO图片\n}",
+          "content": "{\n     \"parentUnitID\" : 1,\n     \"unitName\": \"子公司\",\n     \"unitType\": \"经销商\",\n     \"linkman\": \"小一\",\n     \"TEL\": \"13866666666\",\n     \"unitAddress\": \"公司地址\",\n     \"unitEmail\": \"公司邮箱\",\n     \"unitURL\": \"公司网址\",\n     \"remark\": \"备注\",\n     \"logo\": \"LOGO图片\"\n}",
           "type": "json"
         }
       ]
@@ -201,10 +201,10 @@ define({ "api": [
         "200": [
           {
             "group": "200",
-            "type": "Boolean",
+            "type": "Int",
             "optional": false,
-            "field": "code",
-            "description": "<p>添加公司是否成功</p>"
+            "field": "status",
+            "description": "<p>添加公司是否成功(0,1)</p>"
           },
           {
             "group": "200",
@@ -218,7 +218,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n     code : true,\n     msg: \"公司添加成功\"\n}",
+          "content": "{\n     \"status\" : 1,\n     \"msg\": \"公司添加成功\"\n}",
           "type": "json"
         }
       ]
@@ -228,7 +228,7 @@ define({ "api": [
   },
   {
     "type": "GET",
-    "url": "/getAccount",
+    "url": "/account",
     "title": "获取账号信息",
     "name": "____",
     "group": "GET",
@@ -315,17 +315,17 @@ define({ "api": [
       "examples": [
         {
           "title": "Request-Example:",
-          "content": "{\n   unitID: 1,\n   page: 1,\n   length: 10,\n   orderField: ID,\n   desc: 1\n}",
+          "content": "{\n   \"unitID\": 1,\n   \"page\": 1,\n   \"length\": 10,\n   \"orderField\": \"ID\",\n   \"desc\": 1\n}",
           "type": "json"
         },
         {
           "title": "Request-Example:",
-          "content": "{\n   q: ppp,\n   field: userName,\n   fasttips: 0,\n   page: 1,\n   length: 10,\n   orderField: ID,\n   desc: 1\n}",
+          "content": "{\n   \"q\": \"ppp\",\n   \"field\": \"userName\",\n   \"fasttips\": 0,\n   \"page\": 1,\n   \"length\": 10,\n   \"orderField\": \"ID\",\n   \"desc\": 1\n}",
           "type": "json"
         },
         {
           "title": "Request-Example:",
-          "content": "{\n   minDate: 2018/8/15 12:00:00,\n   maxDate: 2018/8/16 12:00:00,\n   page: 1,\n   length: 10,\n   orderField: ID,\n   desc: 1\n}",
+          "content": "{\n   \"minDate\": \"2018/8/15 12:00:00\",\n   \"maxDate\": \"2018/8/16 12:00:00\",\n   \"page\": 1,\n   \"length\": 10,\n   \"orderField\": \"ID\",\n   \"desc\": 1\n}",
           "type": "json"
         }
       ]
@@ -335,10 +335,10 @@ define({ "api": [
         "200": [
           {
             "group": "200",
-            "type": "Boolean",
+            "type": "Int",
             "optional": false,
-            "field": "code",
-            "description": "<p>查询账号是否成功</p>"
+            "field": "status",
+            "description": "<p>查询账号是否成功(0,1)</p>"
           },
           {
             "group": "200",
@@ -373,7 +373,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n    \"code\": true,\n    \"msg\": \"unitID查询成功\",\n    \"data\": {\n        \"accounts\": [\n            {\n                \"ID\": 1,\n                \"icon\": \"/usericon/favicon.ico\",\n                \"userName\": \"admin\",\n                \"role\": \"超级管理员\",\n                \"extensionNumber\": \"8001\",\n                \"sex\": \"男\",\n                \"realName\": \"Administrator\",\n                \"affiliatedUnitID\": 1\n            },\n            {\n                \"ID\": 2,\n                \"icon\": \"/usericon/admin1_8-19-2018_14104029341639146_sky_lanterns_by_wlop-d7b5nfg.jpg\",\n                \"userName\": \"admin1\",\n                \"role\": \"高级管理员\",\n                \"extensionNumber\": \"12454657878\",\n                \"sex\": \"女\",\n                \"realName\": \"小一\",\n                \"affiliatedUnitID\": 1\n            }\n        ],\n        \"count\": 2\n    }\n}",
+          "content": "{\n    \"status\": 1,\n    \"msg\": \"unitID查询成功\",\n    \"data\": {\n        \"accounts\": [\n            {\n                \"ID\": 1,\n                \"icon\": \"/usericon/favicon.ico\",\n                \"email\": \"aaa.@aaa.com\",\n                \"userName\": \"admin\",\n                \"role\": \"超级管理员\",\n                \"extensionNumber\": \"8001\",\n                \"sex\": \"男\",\n                \"realName\": \"Administrator\",\n                \"affiliatedUnitID\": 1\n            },\n            {\n                \"ID\": 2,\n                \"icon\": \"/usericon/admin1_8-19-2018_14104029341639146_sky_lanterns_by_wlop-d7b5nfg.jpg\",\n                \"email\": \"aaa.@aaa.com\",\n                \"userName\": \"admin1\",\n                \"role\": \"高级管理员\",\n                \"extensionNumber\": \"12454657878\",\n                \"sex\": \"女\",\n                \"realName\": \"小一\",\n                \"affiliatedUnitID\": 1\n            }\n        ],\n        \"count\": 2\n    }\n}",
           "type": "json"
         }
       ]
@@ -383,7 +383,7 @@ define({ "api": [
   },
   {
     "type": "GET",
-    "url": "/getUnitLogoUrl",
+    "url": "/unitLogoUrl/:unitID",
     "title": "获取公司的LOGO",
     "name": "_____LOGO",
     "group": "GET",
@@ -403,7 +403,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Request-Example:",
-          "content": "{\n    unitID: 2\n}",
+          "content": "{\n    http://domain/unitLogoUrl/1\n}",
           "type": "json"
         }
       ]
@@ -413,10 +413,10 @@ define({ "api": [
         "200": [
           {
             "group": "200",
-            "type": "Boolean",
+            "type": "Int",
             "optional": false,
-            "field": "code",
-            "description": "<p>查询公司LOGO是否成功</p>"
+            "field": "status",
+            "description": "<p>查询公司LOGO是否成功(0,1)</p>"
           },
           {
             "group": "200",
@@ -437,7 +437,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n    \"code\": true,\n    \"msg\": \"查询成功\",\n    \"data\": \"/logo/qqq2342_2018-8-17_12492779049707181_MainActivity.java\"\n}",
+          "content": "{\n    \"status\": 1,\n    \"msg\": \"查询成功\",\n    \"data\": \"/logo/qqq2342_2018-8-17_12492779049707181_MainActivity.java\"\n}",
           "type": "json"
         }
       ]
@@ -447,7 +447,7 @@ define({ "api": [
   },
   {
     "type": "GET",
-    "url": "/getUnit",
+    "url": "/unit",
     "title": "获取公司",
     "name": "______",
     "group": "GET",
@@ -534,17 +534,17 @@ define({ "api": [
       "examples": [
         {
           "title": "Request-Example:",
-          "content": "{\n   unitID: 1,\n   page: 1,\n   length: 10,\n   desc: 1,\n   orderField: ID\n}",
+          "content": "{\n   \"unitID\": 1,\n   \"page\": 1,\n   \"length\": 10,\n   \"desc\": 1,\n   \"orderField\": \"ID\"\n}",
           "type": "json"
         },
         {
           "title": "Request-Example:",
-          "content": "{\n   field: unitName,\n   q: 铭贝科技,\n   fasttips: 0,\n   page: 1,\n   length: 10,\n   desc: 1,\n   orderField: ID\n}",
+          "content": "{\n   \"field\": \"unitName\",\n   \"q\": \"铭贝科技\",\n   \"fasttips\": 0,\n   \"page\": 1,\n   \"length\": 10,\n   \"desc\": 1,\n   \"orderField\": \"ID\"\n}",
           "type": "json"
         },
         {
           "title": "Request-Example:",
-          "content": "{\n   minDate: 2018/8/15 12:00:00,\n   maxDate: 2018-8-16 13:37:39,\n   page: 1,\n   length: 10,\n   desc: 1,\n   orderField: ID\n}",
+          "content": "{\n   \"minDate\": \"2018/8/15 12:00:00\",\n   \"maxDate\": \"2018-8-16 13:37:39\",\n   \"page\": 1,\n   \"length\": 10,\n   \"desc\": 1,\n   \"orderField\": \"ID\"\n}",
           "type": "json"
         }
       ]
@@ -554,10 +554,10 @@ define({ "api": [
         "200": [
           {
             "group": "200",
-            "type": "Boolean",
+            "type": "Int",
             "optional": false,
-            "field": "code",
-            "description": "<p>查询公司是否成功</p>"
+            "field": "status",
+            "description": "<p>查询公司是否成功(0,1)</p>"
           },
           {
             "group": "200",
@@ -592,7 +592,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n   \"code\": true,\n   \"msg\": \"unitID = 1 查询成功\",\n   \"data\": {\n       \"units\": [\n           {\n               \"ID\": 2,\n               \"unitName\": \"aaa1\",\n               \"unitType\": \"经销商\",\n               \"linkman\": \"asd\",\n               \"TEL\": \"2324\",\n               \"unitEmail\": \"asd\",\n               \"unitURL\": \"sdfg\",\n               \"logo\": \"/logo/aaa1_8-19-2018_29333284864167153_sky_lanterns_by_wlop-d7b5nfg.jpg\",\n               \"remark\": \"asddfsdf\",\n               \"parentUnitID\": 1,\n               \"unitTreeID\": \"1,2\"\n           },\n           {\n               \"ID\": 1,\n               \"unitName\": \"重庆铭贝科技有限公司\",\n               \"unitType\": \"\",\n               \"linkman\": \"余小勇\",\n               \"TEL\": \"4006117011\",\n               \"unitEmail\": \"unitEmail\",\n               \"unitURL\": \"unitURL\",\n               \"logo\": \"logo\",\n               \"remark\": \"remark\",\n               \"parentUnitID\": 1,\n               \"unitTreeID\": \"1\"\n           }\n       ],\n       \"count\": 2\n   }\n}",
+          "content": "{\n   \"status\": 1,\n   \"msg\": \"unitID = 1 查询成功\",\n   \"data\": {\n       \"units\": [\n           {\n               \"ID\": 2,\n               \"unitName\": \"aaa1\",\n               \"unitType\": \"经销商\",\n               \"linkman\": \"asd\",\n               \"TEL\": \"2324\",\n               \"unitEmail\": \"asd\",\n               \"unitURL\": \"sdfg\",\n               \"logo\": \"/logo/aaa1_8-19-2018_29333284864167153_sky_lanterns_by_wlop-d7b5nfg.jpg\",\n               \"remark\": \"asddfsdf\",\n               \"parentUnitID\": 1,\n               \"unitTreeID\": \"1,2\"\n           },\n           {\n               \"ID\": 1,\n               \"unitName\": \"重庆铭贝科技有限公司\",\n               \"unitType\": \"\",\n               \"linkman\": \"余小勇\",\n               \"TEL\": \"4006117011\",\n               \"unitEmail\": \"unitEmail\",\n               \"unitURL\": \"unitURL\",\n               \"logo\": \"logo\",\n               \"remark\": \"remark\",\n               \"parentUnitID\": 1,\n               \"unitTreeID\": \"1\"\n           }\n       ],\n       \"count\": 2\n   }\n}",
           "type": "json"
         }
       ]
@@ -605,17 +605,17 @@ define({ "api": [
     "url": "/logOut",
     "title": "退出登录",
     "name": "____",
-    "group": "Logo",
+    "group": "Login",
     "version": "0.1.0",
     "success": {
       "fields": {
         "200": [
           {
             "group": "200",
-            "type": "Boolean",
+            "type": "Int",
             "optional": false,
-            "field": "code",
-            "description": "<p>退出状态</p>"
+            "field": "status",
+            "description": "<p>成功状态(0,1)</p>"
           },
           {
             "group": "200",
@@ -629,20 +629,20 @@ define({ "api": [
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n    code: true,\n    msg: \"退出成功\"\n}",
+          "content": "{\n    \"status\": 1,\n    \"msg\": \"退出成功\"\n}",
           "type": "type"
         }
       ]
     },
     "filename": "src/controller/adminController.ts",
-    "groupTitle": "Logo"
+    "groupTitle": "Login"
   },
   {
     "type": "POST",
-    "url": "/logo",
+    "url": "/login",
     "title": "登录",
     "name": "______",
-    "group": "Logo",
+    "group": "Login",
     "version": "0.1.0",
     "parameter": {
       "fields": {
@@ -683,10 +683,10 @@ define({ "api": [
         "200": [
           {
             "group": "200",
-            "type": "Boolean",
+            "type": "Int",
             "optional": false,
-            "field": "code",
-            "description": "<p>成功状态</p>"
+            "field": "status",
+            "description": "<p>成功状态(0,1)</p>"
           },
           {
             "group": "200",
@@ -707,17 +707,17 @@ define({ "api": [
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n    \"code\": true,\n    \"msg\": \"欢迎登录admin\",\n    \"data\": {\n       \"ID\": 1,\n       \"userName\": \"admin\",\n       \"unitName\": \"重庆铭贝科技有限公司\",\n       \"unitType\": \"\",\n       \"role\": \"超级管理员\",\n       \"affiliatedUnitID\": 1,\n       \"unitTreeID\": \"1\",\n       \"accountTreeID\": \"1\"\n     }\n}",
+          "content": "{\n    \"status\": 1,\n    \"msg\": \"欢迎登录admin\",\n    \"data\": {\n       \"ID\": 1,\n       \"userName\": \"admin\",\n       \"unitName\": \"重庆铭贝科技有限公司\",\n       \"unitType\": \"\",\n       \"role\": \"超级管理员\",\n       \"affiliatedUnitID\": 1,\n       \"unitTreeID\": \"1\",\n       \"accountTreeID\": \"1\"\n     }\n}",
           "type": "type"
         }
       ]
     },
     "filename": "src/controller/adminController.ts",
-    "groupTitle": "Logo"
+    "groupTitle": "Login"
   },
   {
     "type": "PUT",
-    "url": "/updateUnit",
+    "url": "/unit",
     "title": "更新公司信息",
     "name": "____",
     "group": "Update",
@@ -800,7 +800,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Request-Example:",
-          "content": "{\n   unitID: 2,\n   unitName: 公司2\n}",
+          "content": "{\n   \"unitID\": 2,\n   \"unitName\": \"公司2\"\n}",
           "type": "type"
         }
       ]
@@ -810,10 +810,10 @@ define({ "api": [
         "200": [
           {
             "group": "200",
-            "type": "Boolean",
+            "type": "Int",
             "optional": false,
-            "field": "code",
-            "description": "<p>修改公司是否成功</p>"
+            "field": "status",
+            "description": "<p>修改公司是否成功(0,1)</p>"
           },
           {
             "group": "200",
@@ -834,7 +834,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n   \"code\": true,\n   \"msg\": \"修改成功\",\n   \"data\": {\n       \"fieldCount\": 0,\n       \"affectedRows\": 1,\n       \"insertId\": 0,\n       \"serverStatus\": 2,\n       \"warningCount\": 0,\n       \"message\": \"(Rows matched: 1  Changed: 1  Warnings: 0\",\n       \"protocol41\": true,\n       \"changedRows\": 1\n   }\n}",
+          "content": "{\n   \"status\": 1,\n   \"msg\": \"修改成功\",\n   \"data\": {\n       \"fieldCount\": 0,\n       \"affectedRows\": 1,\n       \"insertId\": 0,\n       \"serverStatus\": 2,\n       \"warningCount\": 0,\n       \"message\": \"(Rows matched: 1  Changed: 1  Warnings: 0\",\n       \"protocol41\": true,\n       \"changedRows\": 1\n   }\n}",
           "type": "type"
         }
       ]
@@ -871,7 +871,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Request-Example:",
-          "content": "{\n   sourceUnitID: 2,\n   targetSeniorAccountID: 3\n}",
+          "content": "{\n   \"sourceUnitID\": 2,\n   \"targetSeniorAccountID\": 3\n}",
           "type": "type"
         }
       ]
@@ -881,10 +881,10 @@ define({ "api": [
         "200": [
           {
             "group": "200",
-            "type": "Boolean",
+            "type": "Int",
             "optional": false,
-            "field": "code",
-            "description": "<p>打包转移是否成功</p>"
+            "field": "status",
+            "description": "<p>打包转移是否成功(0,1)</p>"
           },
           {
             "group": "200",
@@ -898,7 +898,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n   \"code\": true,\n   \"msg\": \"打包转移成功，公司共:2条,账号共：4条\"\n}",
+          "content": "{\n   \"status\": 1,\n   \"msg\": \"打包转移成功，公司共:2条,账号共：4条\"\n}",
           "type": "type"
         }
       ]
@@ -908,7 +908,7 @@ define({ "api": [
   },
   {
     "type": "PUT",
-    "url": "/updateAccount",
+    "url": "/account",
     "title": "更新账号信息",
     "name": "______",
     "group": "Update",
@@ -936,6 +936,13 @@ define({ "api": [
             "optional": true,
             "field": "userName",
             "description": "<p>账号名</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "email",
+            "description": "<p>邮箱</p>"
           },
           {
             "group": "Parameter",
@@ -984,7 +991,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Request-Example:",
-          "content": "{\n   accountID: 2,\n   userName: userName2,\n   sex: 女\n}",
+          "content": "{\n   \"accountID\": 2,\n   \"userName\": \"userName2\",\n   \"sex\": \"女\"\n}",
           "type": "json"
         }
       ]
@@ -994,10 +1001,10 @@ define({ "api": [
         "200": [
           {
             "group": "200",
-            "type": "Boolean",
+            "type": "Int",
             "optional": false,
-            "field": "code",
-            "description": "<p>修改账号是否成功</p>"
+            "field": "status",
+            "description": "<p>修改账号是否成功(0,1)</p>"
           },
           {
             "group": "200",
@@ -1018,7 +1025,7 @@ define({ "api": [
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "{\n   \"code\": true,\n   \"msg\": \"账号更新成功\",\n   \"data\": {\n       \"fieldCount\": 0,\n       \"affectedRows\": 1,\n       \"insertId\": 0,\n       \"serverStatus\": 2,\n       \"warningCount\": 0,\n       \"message\": \"(Rows matched: 1  Changed: 1  Warnings: 0\",\n       \"protocol41\": true,\n       \"changedRows\": 1\n   }\n}",
+          "content": "{\n   \"status\": true,\n   \"msg\": \"账号更新成功\",\n   \"data\": {\n       \"fieldCount\": 0,\n       \"affectedRows\": 1,\n       \"insertId\": 0,\n       \"serverStatus\": 2,\n       \"warningCount\": 0,\n       \"message\": \"(Rows matched: 1  Changed: 1  Warnings: 0\",\n       \"protocol41\": true,\n       \"changedRows\": 1\n   }\n}",
           "type": "json"
         }
       ]

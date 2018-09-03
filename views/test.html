@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    .time {
+      color: brown;
+    }
+    .userName {
+      color: rgb(231, 108, 26);
+    }
+    .download {
+      background-color: #ccc;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>test</h1>
+  <button id="close" onclick="closea()">close</button>
+  <button id="link" onclick="link()">link</button>
+  <br>
+  <img id='img' src="" alt="" width="200px;">
+  <br>
+  <input type="text" id="text">
+  <button id="send" onclick="send()">发送</button>
+  <!-- <br> -->
+  <!-- <input type="file" name="" id="file">
+  <button onclick="sendFile()">发送文件1</button> -->
+
+  <br>
+  <input type="file" multiple="multiple" name="file" id="files" >
+  <button onclick="sendFiles()">发送文件2</button>
+  <h1><span id="progres">0</span><span>%</span></h1>
+
+  <div id='content'></div>
+  <script>
+
+    let content = document.getElementById('content');
+    let text = document.getElementById('text');
+    let img = document.getElementById('img');
+    let file = document.getElementById('file');
+    let files = document.getElementById('files');
+    let progres = document.getElementById('progres');
+
+    let ws = undefined;
+    function link() {
+      ws = new WebSocket('ws://172.17.203.125/webSocket/systemMessage');
+      ws.onopen = () => {
+        console.log('open');
+      }
+      ws.onmessage = message => {
+        if (typeof message.data === 'string') {
+          let h5 = document.createElement('h5');
+          h5.innerHTML = message.data;
+          content.appendChild(h5);
+        }
+
+        /* console.log(message.data.size, message.data);
+        let fileReader = new FileReader();
+        fileReader.onload = () => {
+          console.log(fileReader.result);
+          img.onload = () => {
+            console.log(1, fileReader.result)
+            window.URL.revokeObjectURL(fileReader.result);
+            console.log(2, fileReader.result)
+          }
+          img.src = fileReader.result;
+        }
+        fileReader.readAsDataURL(message.data); */
+        if (message.data instanceof Blob) {
+          let url = URL.createObjectURL(message.data);
+          img.onload = () => {
+            // download(url)
+            URL.revokeObjectURL(url);
+          }
+          img.src = url;
+        }
+
+        console.log('message => ', message)
+      }
+      ws.onerror = err => {
+        console.error('err => ', err)
+      }
+      ws.onclose = e => {
+        console.info(e);
+        console.log('链接已经关闭');
+      }
+    }
+
+    function closea() {
+      console.log('close');
+      ws.close();
+      ws = undefined;
+    }
+
+    function send() {
+      let data = text.value;
+      if (ws && ws.readyState === 1) {
+        ws.send(`${new Date().toLocaleString()}: ${data}`);
+      } else {
+        console.log('先连接')
+      }
+      console.log('send')
+    }
+
+    function sendFile() {
+      let files = file.files;
+      console.log(files);
+      if (files.length) {
+        let fType = files[0].type;
+        let blob = new Blob([files[0]], {type: fType});
+        
+        console.log('Blob', blob)
+        console.log('type', fType);
+        let bf = new ArrayBuffer(fType.length * 2);
+        let u16a = new Uint16Array(bf);
+        for (let key in Array.from(fType)) {
+          u16a[key] = fType.charCodeAt(key)
+        }
+        console.log(bf)
+        console.log(u16a);
+        // let typeFileReader = new FileReader();
+        // typeFileReader.onload = function () {
+        //   console.log('typeFileReader => ', this.result);
+        //   // let typeArrayBuffer = ArrayBuffer.transfer(this.result, 100);
+        // }
+        // typeFileReader.readAsArrayBuffer(new Blob([type]));
+
+        let fileReader = new FileReader();
+        fileReader.readAsArrayBuffer(blob);
+        fileReader.onload = function () {
+          console.log(this.result)
+          console.log(new Blob([this.result]))
+          console.log(new Blob([files[0]]))
+          ws.send(this.result)
+        }
+      }
+    }
+
+    function download(href) {
+      let a = document.createElement('a');
+      a.download = 'img123';
+      a.href = href;
+      let event = new MouseEvent('click');
+      a.dispatchEvent(event)
+    }
+
+    function sendFiles() {
+      let formData = new FormData();
+      console.log(files, files.files)
+      for (const iterator of files.files) {
+        // let blob = new Blob([iterator])
+        formData.append('file', iterator);
+      }
+      let xhr = new XMLHttpRequest();
+      
+      xhr.responseType = 'json';
+      xhr.open('POST', 'http://172.17.203.125/file/upload');
+      xhr.upload.onprogress = (e) => {
+        console.log(' =>>> ', e.lengthComputable)
+        console.log('onprogress', e);
+        progres.innerHTML = (e.loaded / e.total) * 100;
+      }
+      xhr.onload = (e) => {
+        let data = xhr.response;
+        if (data.data && data.data instanceof Array && data.data.length !== 0) {
+          for (const iterator of data.data) {
+            console.log(iterator)
+            if (/^image\//.test(iterator.type)) {
+              let img = `<img src="${iterator.url}" alt="img" style="width: 200px;">`
+              ws.send(img);
+            } else {
+              // let download = `<a class="download" href="${iterator.url}" download="${iterator.url.match(/\/([^\/]*)$/)[1]}">${iterator.type}<p>${iterator.url}</p></a>`;
+              let download = `<a class="download" href="/file/download${iterator.url}" target="_blank">${iterator.type}<p>${iterator.url}</p></a>`
+              ws.send(download)
+            }
+          }
+        }
+      };
+      xhr.send(formData);
+      
+    }
+  </script>
+</body>
+
+</html>

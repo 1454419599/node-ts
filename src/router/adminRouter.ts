@@ -10,21 +10,24 @@ adminRouter.post('login', adminController.login);
 
 adminRouter.delete('logOut', adminController.logOut);
 
-adminRouter.put('addUnit', adminController.addUnit);
+adminRouter.post('unit', adminController.addUnit);
 
-adminRouter.put('addAccount', adminController.addAccount);
+adminRouter.post('account', adminController.addAccount);
 
-adminRouter.get('getUnit', adminController.getUnit);
+adminRouter.get('unit', adminController.getUnit);
+adminRouter.get('unit/:unitID', adminController.getUnit);
 
-adminRouter.get('getUnitLogoUrl', adminController.getUnitLogoUrl);
+adminRouter.get('unitLogoUrl', adminController.getUnitLogoUrl);
+adminRouter.get('unitLogoUrl/:unitID', adminController.getUnitLogoUrl);
 
-adminRouter.get('getAccount', adminController.getAccount);
+adminRouter.get('account', adminController.getAccount);
+adminRouter.get('account/:unitID', adminController.getAccount);
 
-adminRouter.put('updateUnit', adminController.updateUnit);
+adminRouter.put('unit', adminController.updateUnit);
 
-adminRouter.put('updateAccount', adminController.updateAccount);
+adminRouter.put('account', adminController.updateAccount);
 
-adminRouter.put('PackToTransfer', adminController.PackToTransfer);
+adminRouter.put('packToTransfer', adminController.packToTransfer);
 
 adminRouter.get('api', adminController.api);
 

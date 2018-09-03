@@ -16,22 +16,28 @@ type mySession = MyType.mySession;
 export default {
   all: async (ctx: myCtx, next: myNext) => {
     console.log(ctx.state.reqJson, ctx.url, ctx.method);
-    console.log(ctx.session)
+    // console.log(ctx.header);
+    // console.log(ctx.headers)
+    // console.log(ctx.cookies.get('test'));
+    console.log(ctx.session);
     if (!(ctx.session as mySession).info) {
       if (ctx.url !== '/login') {
         await ctx.redirect('/login');
+        // ctx.state.reqJson({code: false, msg: '请先登录'})
       } else {
         await next();
       }
     } else {
       await next();
     }
+    // await next();
   },
+
   /**
    * 
-   * @api {POST} /logo 登录
+   * @api {POST} /login 登录
    * @apiName 账号登录接口
-   * @apiGroup Logo
+   * @apiGroup Login
    * @apiVersion  0.1.0
    * 
    * 
@@ -39,7 +45,7 @@ export default {
    * @apiParam {String} userName 账号
    * @apiParam {String} password 密码
    * 
-   * @apiSuccess (200) {Boolean} code 成功状态
+   * @apiSuccess (200) {Int} status 成功状态(0,1)
    * @apiSuccess (200) {String} msg 登录描述
    * @apiSuccess (200) {Object} [data] 登录成功后的账号信息
    * 
@@ -53,7 +59,7 @@ export default {
    * 
    * @apiSuccessExample {type} Success-Response:
    * {
-   *     "code": true,
+   *     "status": 1,
    *     "msg": "欢迎登录admin",
    *     "data": {
    *        "ID": 1,
@@ -75,7 +81,7 @@ export default {
       let info = (ctx.session as mySession).info;
       if (!info) {
         result = await adminServer.login(ctx.state.reqJson);
-        if (result.code) {
+        if (result.status) {
           (ctx.session as MyType.mySession).info = result.data;
         }
       } else {
@@ -89,17 +95,17 @@ export default {
    * 
    * @api {DELETE} /logOut 退出登录
    * @apiName 退出登录
-   * @apiGroup Logo
+   * @apiGroup Login
    * @apiVersion  0.1.0
    * 
-   * @apiSuccess (200) {Boolean} code 退出状态
+   * @apiSuccess (200) {Int} status 成功状态(0,1)
    * @apiSuccess (200) {String} msg 描述信息
    * 
    * 
    * @apiSuccessExample {type} Success-Response:
    * {
-   *     code: true,
-   *     msg: "退出成功"
+   *     "status": 1,
+   *     "msg": "退出成功"
    * }
    * 
    * 
@@ -110,7 +116,7 @@ export default {
       let info = (ctx.session as MyType.mySession).info;
       if (info) {
         delete (ctx.session as MyType.mySession).info;
-        result.code = true;
+        result.status = 1;
         result.msg = "退出成功"
       } else {
         result.msg = "当前没有账号登录"
@@ -121,7 +127,7 @@ export default {
 
   /**
    * 
-   * @api {PUT} /addAccunt 添加账号信息
+   * @api {POST} /accunt 添加账号信息
    * @apiName 添加账号
    * @apiGroup ADD
    * @apiVersion  0.1.0
@@ -136,26 +142,26 @@ export default {
    * @apiParam  {String} [extensionNumber] 分机号码
    * @apiParam  {File} [icon] 账号头像
    * 
-   * @apiSuccess (200) {Boolean} code 添加账号是否成功
+   * @apiSuccess (200) {Int} status 添加账号是否成功(0,1)
    * @apiSuccess (200) {String} msg 描述信息
    * 
    * @apiParamExample  {json} Request-Example:
    * {
-   *    affiliatedUnitID: 1,
-   *    role: 高级管理员,
-   *    userName: admin1,
-   *    password: Aa1,
-   *    sex: 女,
-   *    realName: 小一,
-   *    extensionNumber: 12454657878,
-   *    icon: 头像图片
+   *    "affiliatedUnitID": 1,
+   *    "role": "高级管理员",
+   *    "userName": "admin1",
+   *    "password": "Aa1",
+   *    "sex": "女",
+   *    "realName": "小一",
+   *    "extensionNumber": "12454657878",
+   *    "icon": "头像图片"
    * }
    * 
    * 
    * @apiSuccessExample {json} Success-Response:
    * {
-   *    code: true,
-   *    msg: 添加账号成功
+   *    "status": 1,
+   *    "msg": "添加账号成功"
    * }
    * 
    * 
@@ -232,7 +238,7 @@ export default {
       } else {
         result.msg = `该公司不存在, 请检查affiliatedUnitID字段`
       }
-      if (!result.code) {
+      if (!result.status) {
         MyFun.deleteFile(iconPath)
       }
       return result;
@@ -241,10 +247,10 @@ export default {
 
   /**
    * 
-   * @api {PUT} /addUnit 添加公司信息
+   * @api {POST} /unit 添加公司信息
    * @apiName 添加公司信息
    * @apiGroup ADD
-   * @apiVersion  0.1.1
+   * @apiVersion  0.1.0
    * 
    * 
    * @apiParam  {Number} parentUnitID 添加公司的直属上级公司ID
@@ -258,28 +264,28 @@ export default {
    * @apiParam  {String} [remark] 备注
    * @apiParam  {File} [logo] 公司LOGO图片文件
    * 
-   * @apiSuccess (200) {Boolean} code 添加公司是否成功
+   * @apiSuccess (200) {Int} status 添加公司是否成功(0,1)
    * @apiSuccess (200) {String} msg 描述信息
    * 
    * @apiParamExample  {json} Request-Example:
    * {
-   *      parentUnitID : 1,
-   *      unitName: 子公司,
-   *      unitType: 经销商,
-   *      linkman: 小一,
-   *      TEL: 13866666666,
-   *      unitAddress: 公司地址,
-   *      unitEmail: 公司邮箱,
-   *      unitURL: 公司网址,
-   *      remark: 备注,
-   *      logo: LOGO图片
+   *      "parentUnitID" : 1,
+   *      "unitName": "子公司",
+   *      "unitType": "经销商",
+   *      "linkman": "小一",
+   *      "TEL": "13866666666",
+   *      "unitAddress": "公司地址",
+   *      "unitEmail": "公司邮箱",
+   *      "unitURL": "公司网址",
+   *      "remark": "备注",
+   *      "logo": "LOGO图片"
    * }
    * 
    * 
    * @apiSuccessExample {json} Success-Response:
    * {
-   *      code : true,
-   *      msg: "公司添加成功"
+   *      "status" : 1,
+   *      "msg": "公司添加成功"
    * }
    * 
    * 
@@ -316,6 +322,7 @@ export default {
           if (role === MyEnum.accountType[1]) {
             unitTreeID = `${unitTreeID},${ID}`
           }
+
           //判断该账号是否能为该公司添加公司
           if (new RegExp(unitTreeID).test(selectUnits[0].unitTreeID) || (role == MyEnum.accountType[1] && parentUnitID == 1)) {
             //判断该公司是否支持添加该类型的公司
@@ -341,7 +348,7 @@ export default {
       } else {
         result.msg = "该账号不支持添加公司"
       }
-      if (!result.code) {
+      if (!result.status) {
         MyFun.deleteFile(logoPath);
       }
       return result;
@@ -350,7 +357,7 @@ export default {
 
   /**
    * 
-   * @api {GET} /getUnit 获取公司
+   * @api {GET} /unit 获取公司
    * @apiName 获取公司信息
    * @apiGroup GET
    * @apiVersion  0.1.0
@@ -367,7 +374,7 @@ export default {
    * @apiParam  {String} [minDate] 创建公司的最小时间
    * @apiParam  {String} [maxDate] 创建公司的最大时间
    * 
-   * @apiSuccess (200) {Boolean} code 查询公司是否成功
+   * @apiSuccess (200) {Int} status 查询公司是否成功(0,1)
    * @apiSuccess (200) {String} msg 描述信息
    * @apiSuccess (200) {json} data 信息
    * @apiSuccess (200) {Array} data.units 查询公司列表具体信息
@@ -375,37 +382,37 @@ export default {
    * 
    * @apiParamExample  {json} Request-Example:
    * {
-   *    unitID: 1,
-   *    page: 1,
-   *    length: 10,
-   *    desc: 1,
-   *    orderField: ID
+   *    "unitID": 1,
+   *    "page": 1,
+   *    "length": 10,
+   *    "desc": 1,
+   *    "orderField": "ID"
    * }
    * 
    * @apiParamExample  {json} Request-Example:
    * {
-   *    field: unitName,
-   *    q: 铭贝科技,
-   *    fasttips: 0,
-   *    page: 1,
-   *    length: 10,
-   *    desc: 1,
-   *    orderField: ID
+   *    "field": "unitName",
+   *    "q": "铭贝科技",
+   *    "fasttips": 0,
+   *    "page": 1,
+   *    "length": 10,
+   *    "desc": 1,
+   *    "orderField": "ID"
    * }
    * 
    * @apiParamExample  {json} Request-Example:
    * {
-   *    minDate: 2018/8/15 12:00:00,
-   *    maxDate: 2018-8-16 13:37:39,
-   *    page: 1,
-   *    length: 10,
-   *    desc: 1,
-   *    orderField: ID
+   *    "minDate": "2018/8/15 12:00:00",
+   *    "maxDate": "2018-8-16 13:37:39",
+   *    "page": 1,
+   *    "length": 10,
+   *    "desc": 1,
+   *    "orderField": "ID"
    * }
    * 
    * @apiSuccessExample {json} Success-Response:
    * {
-   *    "code": true,
+   *    "status": 1,
    *    "msg": "unitID = 1 查询成功",
    *    "data": {
    *        "units": [
@@ -446,15 +453,16 @@ export default {
     await MyFun.controllerTryCatchFinally(ctx, async () => {
       let info = (ctx.session as MyType.mySession).info;
       let json = ctx.state.reqJson;
+      json.unitID = ctx.params.unitID;
       let { unitID, q, minDate, maxDate } = json;
       let result: MyType.myMessage = myJSON.message();
-
+      console.log(unitID)
       if ((unitID && typeof parseInt(unitID) === 'number' && !isNaN(parseInt(unitID))) || q || minDate || maxDate) {
         result = await adminServer.getUnit(json, info);
       } else {
         result.data = await adminServer.selectUnit({ ID: info.affiliatedUnitID }, myJSON.unitField);
         result.msg = "默认返回登录账号所属公司";
-        result.code = true;
+        result.status = 1;
       }
       return result;
     })
@@ -462,7 +470,7 @@ export default {
 
   /**
    * 
-   * @api {GET} /getUnitLogoUrl 获取公司的LOGO
+   * @api {GET} /unitLogoUrl/:unitID 获取公司的LOGO
    * @apiName 获取公司的LOGO
    * @apiGroup GET
    * @apiVersion  0.1.0
@@ -470,19 +478,19 @@ export default {
    * 
    * @apiParam  {Number} [unitID] 公司ID
    * 
-   * @apiSuccess (200) {Boolean} code 查询公司LOGO是否成功
+   * @apiSuccess (200) {Int} status 查询公司LOGO是否成功(0,1)
    * @apiSuccess (200) {String} msg 描述信息
    * @apiSuccess (200) {String} [data] LOGO URL
    * 
    * @apiParamExample  {json} Request-Example:
    * {
-   *     unitID: 2
+   *     http://domain/unitLogoUrl/1
    * }
    * 
    * 
    * @apiSuccessExample {json} Success-Response:
    * {
-   *     "code": true,
+   *     "status": 1,
    *     "msg": "查询成功",
    *     "data": "/logo/qqq2342_2018-8-17_12492779049707181_MainActivity.java"
    * }
@@ -493,7 +501,8 @@ export default {
     await MyFun.controllerTryCatchFinally(ctx, async () => {
       let info = (ctx.session as MyType.mySession).info;
       let json = ctx.state.reqJson;
-
+      console.log(ctx.params)
+      json.unitID = ctx.params.unitID;
       let result = await adminServer.getUnitLogoUrl(json, info);
 
       return result;
@@ -502,7 +511,7 @@ export default {
 
   /**
    * 
-   * @api {GET} /getAccount 获取账号信息
+   * @api {GET} /account 获取账号信息
    * @apiName 获取账号
    * @apiGroup GET
    * @apiVersion 0.1.0
@@ -519,7 +528,7 @@ export default {
    * @apiParam {String} [minDate] 创建账号的最小时间
    * @apiParam {String} [maxDate] 创建账号的最大时间
    * 
-   * @apiSuccess (200) {Boolean} code 查询账号是否成功
+   * @apiSuccess (200) {Int} status 查询账号是否成功(0,1)
    * @apiSuccess (200) {String} msg 描述信息
    * @apiSuccess (200) {Objec} [data] code = true 时存在，账号信息对象
    * @apiSuccess (200) {Array} [data.accounts] data.accounts 账号信息数据
@@ -527,44 +536,45 @@ export default {
    * 
    * @apiParamExample {json} Request-Example:
    * {
-   *    unitID: 1,
-   *    page: 1,
-   *    length: 10,
-   *    orderField: ID,
-   *    desc: 1
+   *    "unitID": 1,
+   *    "page": 1,
+   *    "length": 10,
+   *    "orderField": "ID",
+   *    "desc": 1
    * }
    * 
    * @apiParamExample {json} Request-Example:
    * {
-   *    q: ppp,
-   *    field: userName,
-   *    fasttips: 0,
-   *    page: 1,
-   *    length: 10,
-   *    orderField: ID,
-   *    desc: 1
+   *    "q": "ppp",
+   *    "field": "userName",
+   *    "fasttips": 0,
+   *    "page": 1,
+   *    "length": 10,
+   *    "orderField": "ID",
+   *    "desc": 1
    * }
    * 
    * @apiParamExample {json} Request-Example:
    * {
-   *    minDate: 2018/8/15 12:00:00,
-   *    maxDate: 2018/8/16 12:00:00,
-   *    page: 1,
-   *    length: 10,
-   *    orderField: ID,
-   *    desc: 1
+   *    "minDate": "2018/8/15 12:00:00",
+   *    "maxDate": "2018/8/16 12:00:00",
+   *    "page": 1,
+   *    "length": 10,
+   *    "orderField": "ID",
+   *    "desc": 1
    * }
    * 
    * 
    * @apiSuccessExample {json} Success-Response:
    * {
-   *     "code": true,
+   *     "status": 1,
    *     "msg": "unitID查询成功",
    *     "data": {
    *         "accounts": [
    *             {
    *                 "ID": 1,
    *                 "icon": "/usericon/favicon.ico",
+   *                 "email": "aaa.@aaa.com",
    *                 "userName": "admin",
    *                 "role": "超级管理员",
    *                 "extensionNumber": "8001",
@@ -575,6 +585,7 @@ export default {
    *             {
    *                 "ID": 2,
    *                 "icon": "/usericon/admin1_8-19-2018_14104029341639146_sky_lanterns_by_wlop-d7b5nfg.jpg",
+   *                 "email": "aaa.@aaa.com",
    *                 "userName": "admin1",
    *                 "role": "高级管理员",
    *                 "extensionNumber": "12454657878",
@@ -592,6 +603,7 @@ export default {
     await MyFun.controllerTryCatchFinally(ctx, async () => {
       let info = (ctx.session as MyType.mySession).info;
       let json = ctx.state.reqJson;
+      json.unitID = ctx.params.unitID;
       let { unitID, q, minDate, maxDate } = json;
       let result: MyType.myMessage = myJSON.message();
 
@@ -599,7 +611,7 @@ export default {
         result = await adminServer.getAccount(json, info);
       } else {
         result.data = await adminServer.selectAccount({ ID: info.ID }, myJSON.accountField);
-        result.code = true;
+        result.status = 1;
         result.msg = '查询成功'
       }
 
@@ -609,7 +621,7 @@ export default {
 
   /**
    * 
-   * @api {PUT} /updateUnit 更新公司信息
+   * @api {PUT} /unit 更新公司信息
    * @apiName 更新公司
    * @apiGroup Update
    * @apiVersion  0.1.0
@@ -626,20 +638,20 @@ export default {
    * @apiParam  {String} [unitURL] 单位网址
    * @apiParam  {String} [remark] 备注
    * 
-   * @apiSuccess (200) {Boolean} code 修改公司是否成功
+   * @apiSuccess (200) {Int} status 修改公司是否成功(0,1)
    * @apiSuccess (200) {String} msg 描述信息
    * @apiSuccess (200) {Object} [data] 数据库返回信息
    * 
    * @apiParamExample  {type} Request-Example:
    * {
-   *    unitID: 2,
-   *    unitName: 公司2
+   *    "unitID": 2,
+   *    "unitName": "公司2"
    * }
    * 
    * 
    * @apiSuccessExample {type} Success-Response:
    * {
-   *    "code": true,
+   *    "status": 1,
    *    "msg": "修改成功",
    *    "data": {
    *        "fieldCount": 0,
@@ -688,7 +700,7 @@ export default {
         result.msg = "请指定修改公司的ID, 字段unitID"
       }
 
-      if (newLogoPath && !result.code) {
+      if (newLogoPath && !result.status) {
         MyFun.deleteFile(newLogoPath);
       }
       return result;
@@ -697,7 +709,7 @@ export default {
 
   /**
    * 
-   * @api {PUT} /updateAccount 更新账号信息
+   * @api {PUT} /account 更新账号信息
    * @apiName 更新账号信息
    * @apiGroup Update
    * @apiVersion  0.1.0
@@ -706,6 +718,7 @@ export default {
    * @apiParam  {String} [accountID] 账号ID，该参数不存在时修改登录账号
    * @apiParam  {File} [icon] 账号头像
    * @apiParam  {String} [userName] 账号名
+   * @apiParam  {String} [email] 邮箱
    * @apiParam  {String} [role] 账户类型('高级管理员','经销商管理员','组机厂管理员','终端用户管理员','工程师','操作员','观察员','普通用户')
    * @apiParam  {String} [extensionNumber] 分机号码
    * @apiParam  {String} [sex] 性别
@@ -713,21 +726,21 @@ export default {
    * @apiParam  {String} [oldPassword] 旧密码
    * @apiParam  {String} [newPassword] 新密码
    * 
-   * @apiSuccess (200) {Boolean} code 修改账号是否成功
+   * @apiSuccess (200) {Int} status 修改账号是否成功(0,1)
    * @apiSuccess (200) {String} msg 描述信息
    * @apiSuccess (200) {Object} [data] 数据库返回信息
    * 
    * @apiParamExample  {json} Request-Example:
    * {
-   *    accountID: 2,
-   *    userName: userName2,
-   *    sex: 女
+   *    "accountID": 2,
+   *    "userName": "userName2",
+   *    "sex": "女"
    * }
    * 
    * 
    * @apiSuccessExample {json} Success-Response:
    * {
-   *    "code": true,
+   *    "status": true,
    *    "msg": "账号更新成功",
    *    "data": {
    *        "fieldCount": 0,
@@ -761,7 +774,7 @@ export default {
 
         if (code) {
           let { newName, newPath } = msg;
-          json.icon = `${StaticValue.iconSaverelativePath}/${newName}`;
+          json.icon = `${StaticValue.iconSaveRelativePath}/${newName}`;
           newIconPath = newPath;
         } else {
           json.icon = undefined;
@@ -778,7 +791,7 @@ export default {
 
       result = await adminServer.updateAccout(json, info);
 
-      if (newIconPath && !result.code) {
+      if (newIconPath && !result.status) {
         MyFun.deleteFile(newIconPath);
       }
       return result;
@@ -796,25 +809,25 @@ export default {
    * @apiParam  {Number} sourceUnitID 源公司ID，需要打包转移的公司ID
    * @apiParam  {Number} targetSeniorAccountID 目标账号ID，打包转移至高级管理账号的ID
    * 
-   * @apiSuccess (200) {Boolean} code 打包转移是否成功
+   * @apiSuccess (200) {Int} status 打包转移是否成功(0,1)
    * @apiSuccess (200) {String} msg 描述信息
    * 
    * @apiParamExample  {type} Request-Example:
    * {
-   *    sourceUnitID: 2,
-   *    targetSeniorAccountID: 3
+   *    "sourceUnitID": 2,
+   *    "targetSeniorAccountID": 3
    * }
    * 
    * 
    * @apiSuccessExample {type} Success-Response:
    * {
-   *    "code": true,
+   *    "status": 1,
    *    "msg": "打包转移成功，公司共:2条,账号共：4条"
    * }
    * 
    * 
    */
-  PackToTransfer: async (ctx: myCtx) => {
+  packToTransfer: async (ctx: myCtx) => {
     await MyFun.controllerTryCatchFinally(ctx, async () => {
       let info = (ctx.session as MyType.mySession).info;
       let json = ctx.state.reqJson;

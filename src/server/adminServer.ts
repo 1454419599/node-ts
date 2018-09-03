@@ -61,7 +61,7 @@ export default {
                 accountTreeID
               }
               result.data = info;
-              result.code = true;
+              result.status = 1;
               return `欢迎登录${userName}`
             } else {
               return "公司名错误";
@@ -126,7 +126,7 @@ export default {
             let { logo, parentUnitID } = unitResult[0];
             if (logo) {
               flag = false;
-              result.code = true;
+              result.status = 1;
               result.msg = "查询成功";
               result.data = logo;
               return logo;
@@ -170,7 +170,6 @@ export default {
       let mySql = new MySql<MyType.myDbFeild>();
       await mySql.multipleResult(async (query) => {
         if (q) {
-
           let fields = [MyEnum.accountInfoField[2], MyEnum.accountInfoField[7]];
           if (MyEnum.accountInfoField[field] !== undefined) {
             fields = [field];
@@ -200,7 +199,7 @@ export default {
           } else {
             countResult = 0;
           }
-          result.code = true;
+          result.status = 1;
           result.data = { accounts: accountResult, count: countResult };
           result.msg = `q = ${q}, 查询成功`
         } else if (unitID) {
@@ -215,18 +214,20 @@ export default {
             let { unitTreeID } = unitResults[0];
             let wherekv;
             let where;
-            if (unitID == 1 && MyEnum.accountType[1] == role) {
-              // wherekv = {
-              //   accountTreeID: `1,${ID}`
-              // }
-              where = `\`${MyEnum.accountInfoField[8]}\` = ${unitID} AND \`${MyEnum.accountInfoField[9]}\` LIKE '1,${ID}%'`;
-            } else {
-              wherekv = {
-                affiliatedUnitID: unitID
-              }
+            
+            console.log(info.unitTreeID, unitTreeID);
+            let infoUnitTreeID = info.unitTreeID;
+            if (info.role == MyEnum.accountType[1]) {
+              infoUnitTreeID = `${infoUnitTreeID},${info.ID}`
             }
-            console.log(info.unitTreeID, unitTreeID)
-            if (new RegExp(info.unitTreeID).test(unitTreeID)) {
+            if (new RegExp(infoUnitTreeID).test(unitTreeID) || unitID == 1) {
+              if (unitID == 1 && MyEnum.accountType[1] == role) {
+                where = `\`${MyEnum.accountInfoField[8]}\` = ${unitID} AND \`${MyEnum.accountInfoField[9]}\` LIKE '1,${ID}%'`;
+              } else {
+                wherekv = {
+                  affiliatedUnitID: unitID
+                }
+              }
               let option: SelectOptions<MyDb.UserInfoTableField> = {
                 table: MyEnum.dbName[1],
                 where,
@@ -246,7 +247,7 @@ export default {
               } else {
                 countResult = 0;
               }
-              result.code = true;
+              result.status = 1;
               result.msg = "unitID查询成功"
               result.data = { accounts: accountResults, count: countResult };
             } else {
@@ -279,7 +280,7 @@ export default {
             countResult = 0;
           }
 
-          result.code = true;
+          result.status = 1;
           result.data = { accounts: accountResults, count: countResult };
           result.msg = `${minDate} - ${maxDate}, 查询成功`
         }
@@ -370,7 +371,7 @@ export default {
               if ((obj as any).logo) {
                 MyFun.deleteFile(`${StaticValue.publicPath}/${logo}`)
               }
-              result.code = true;
+              result.status = 1;
               result.msg = "修改成功";
             }
             result.data = updateResult;
@@ -393,6 +394,7 @@ export default {
       let keyObj = {
         icon: undefined,
         userName: undefined,
+        email: undefined,
         role: undefined,
         extensionNumber: undefined,
         sex: undefined,
@@ -400,7 +402,7 @@ export default {
         lastChangeTime: undefined
       };
 
-      let obj = await MyFun.objFiltrate(keyObj, json, { lastChangeTime: new Date().toLocaleString() });
+      let obj = await MyFun.objFiltrate<MyDb.UserInfoTableField>(keyObj, json, { lastChangeTime: new Date().toLocaleString() });
       await MyFun.deleteObjNullOrundefined(obj);
 
       let mySql = new MySql<MyType.myDbFeild>();
@@ -503,7 +505,7 @@ export default {
               if (obj.icon) {
                 MyFun.deleteFile(`${StaticValue.publicPath}/${icon}`)
               }
-              result.code = true;
+              result.status = 1;
               result.msg = "账号更新成功"
             }
             result.data = updateResult
@@ -549,7 +551,7 @@ export default {
         let insertAccountResult: any = await query.multipleInsert({
           table: MyEnum.dbName[1],
           kv: {
-            icon: `${StaticValue.iconSaverelativePath}/${icon}`,
+            icon: `${StaticValue.iconSaveRelativePath}/${icon}`,
             userName,
             password,
             role,
@@ -586,7 +588,7 @@ export default {
         } else {
           await query.multipleRollback();
         }
-        result.code = true;
+        result.status = 1;
         result.msg = "添加账号成功"
         return;
       });
@@ -639,7 +641,7 @@ export default {
                 unitTreeID: `${unitTreeID},${inserId}`
               }
             })
-            result.code = true;
+            result.status = 1;
             result.msg = "公司添加成功"
           }
           return;
@@ -678,12 +680,14 @@ export default {
         start,
         length
       };
+
       let ORDERarr: any;
       if (MyEnum.unitBaseField[orderField] !== undefined) {
         ORDERarr = orderField ? [{ field: [orderField], DESC: desc }] : undefined;
       } else {
         ORDERarr = undefined;
       }
+
       let mySql = new MySql<MyDb.UnitBaseTableField>();
       await mySql.multipleResult(async (query) => {
         if (typeof unitID === 'number' && !isNaN(unitID)) {
@@ -696,6 +700,9 @@ export default {
           });
           if (selectResult instanceof Array && selectResult.length !== 0) {
             let parentUnitTreeID = selectResult[0].unitTreeID;
+            if (role == MyEnum.accountType[1]) {
+              unitTreeID = `${unitTreeID},${ID}`
+            }
             if (new RegExp(unitTreeID).test(parentUnitTreeID) || unitID == 1) {
               let wherekv: MyDb.UnitBaseTableField = unitID == 1 && role == MyEnum.accountType[1] ? { parentAdminAcountID: ID } : { parentUnitID: unitID };
               let options: SelectOptions<MyDb.UnitBaseTableField> = {
@@ -716,7 +723,7 @@ export default {
               } else {
                 unitCount = 0
               }
-              result.code = true;
+              result.status = 1;
               result.data = { units: unitResults, count: unitCount };
               result.msg = `unitID = ${unitID} 查询成功`
             } else {
@@ -749,7 +756,7 @@ export default {
           } else {
             countResult = 0;
           }
-          result.code = true;
+          result.status = 1;
           result.msg = `${minDate} - ${maxDate} 结果`
           result.data = { units: unitResults, count: countResult };
         } else if (q) {
@@ -779,7 +786,7 @@ export default {
           } else {
             countResult = 0;
           }
-          result.code = true;
+          result.status = 1;
           result.msg = `${q}结果`
           result.data = { units: unitResults, count: countResult };
         }
@@ -890,7 +897,7 @@ export default {
           }
         }
         result.msg = `打包转移成功，公司共：${unitCount}条,账号共：${accountCount}条`
-        result.code = true;
+        result.status = 1;
         return ;
       });
       return result;

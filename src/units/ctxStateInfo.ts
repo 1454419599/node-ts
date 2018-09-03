@@ -1,11 +1,13 @@
+import KoaWebsocket, { App } from 'koa-websocket';
+import * as ws from 'ws';
 import { Context } from "koa";
 import { Session } from "../../node_modules/@types/koa-generic-session";
 import MyType from "./myType";
+import { IRouterContext } from "koa-router";
+import { MiddlewareContext } from "koa-websocket";
+import { mySend } from './mysend';
 
-interface Send {
-  file: Function,
-  json: Function,
-}
+
 
 interface Log {
   trace: Function,
@@ -17,11 +19,12 @@ interface Log {
   mark: Function,
 }
 
- interface StateInfo {
-  send: Send,
+interface StateInfo {
+  send: mySend,
   log: Log,
   reqJson: any,
   files: any,
+  websocket: any,
 }
 
 export interface Info {
@@ -39,7 +42,24 @@ export interface MySession extends Session {
   info: Info;
 }
 
-
-export default interface MyCtx extends Context {
+interface MyCtx extends Context {
   state: StateInfo;
 }
+
+export interface MyWSCtx extends MyCtx {
+  websocket: ws;
+}
+
+type Middleware<T> = (context: T, next: () => Promise<any>) => any;
+type MyMiddleware = (this: MyWSCtx, context: MyWSCtx, next: () => Promise<any>) => any;
+
+interface MyServer extends KoaWebsocket.Server {
+  middleware: Middleware<Context>[];
+  use(middleware: MyMiddleware): this;
+}
+
+export interface MyApp extends KoaWebsocket.App {
+  ws: MyServer;
+}
+
+export default MyCtx;

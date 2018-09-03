@@ -10,13 +10,19 @@
     "prestart": "echo 正在编译，成功后启动index.js...",
     "start": "npm run myTsc && npm run myNode",
     "prerestart": "echo index.js 成功",
-    "myInspect": "node --inspect dist/app.js",
-    "createDB": "node dist/init.js"
+    "myInspect": "node --inspect dist/index.js",
+    "createDB": "node dist/init.js",
+    "createApi": "apidoc -i src/ -o doc/"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@types/ejs": "^2.6.0",
+    "@types/koa-websocket": "^5.0.2",
+    "@types/koa2-cors": "^2.0.1",
+    "@types/mime": "^2.0.0",
+    "@types/nodemailer": "^4.6.2",
+    "@types/ws": "^6.0.0",
     "ejs": "^2.6.1",
     "formidable": "^1.2.1",
     "fs": "0.0.1-security",
@@ -27,11 +33,16 @@
     "koa-router": "^7.4.0",
     "koa-static": "^5.0.0",
     "koa-views": "^6.1.4",
+    "koa-websocket": "^5.0.1",
+    "koa2-cors": "^2.0.6",
     "log4js": "^2.10.0",
+    "mime": "^2.3.1",
     "mysql": "^2.15.0",
+    "nodemailer": "^4.6.8",
     "path": "^0.12.7",
     "redis": "^2.8.0",
-    "typescript": "^2.9.2"
+    "typescript": "^2.9.2",
+    "ws": "^6.0.0"
   },
   "devDependencies": {
     "@types/formidable": "^1.0.31",

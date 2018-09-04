@@ -228,7 +228,7 @@
   },
   {
     "type": "GET",
-    "url": "/account",
+    "url": "/account/:unitID",
     "title": "获取账号信息",
     "name": "____",
     "group": "GET",
@@ -315,17 +315,17 @@
       "examples": [
         {
           "title": "Request-Example:",
-          "content": "{\n   \"unitID\": 1,\n   \"page\": 1,\n   \"length\": 10,\n   \"orderField\": \"ID\",\n   \"desc\": 1\n}",
+          "content": "url: http://39.108.114.59/account/1\n{\n   \"page\": 1,\n   \"length\": 10,\n   \"orderField\": \"ID\",\n   \"desc\": 1\n}",
           "type": "json"
         },
         {
           "title": "Request-Example:",
-          "content": "{\n   \"q\": \"ppp\",\n   \"field\": \"userName\",\n   \"fasttips\": 0,\n   \"page\": 1,\n   \"length\": 10,\n   \"orderField\": \"ID\",\n   \"desc\": 1\n}",
+          "content": "url: http://39.108.114.59/account\n{\n   \"q\": \"ppp\",\n   \"field\": \"userName\",\n   \"fasttips\": 0,\n   \"page\": 1,\n   \"length\": 10,\n   \"orderField\": \"ID\",\n   \"desc\": 1\n}",
           "type": "json"
         },
         {
           "title": "Request-Example:",
-          "content": "{\n   \"minDate\": \"2018/8/15 12:00:00\",\n   \"maxDate\": \"2018/8/16 12:00:00\",\n   \"page\": 1,\n   \"length\": 10,\n   \"orderField\": \"ID\",\n   \"desc\": 1\n}",
+          "content": "url: http://39.108.114.59/account\n{\n   \"minDate\": \"2018/8/15 12:00:00\",\n   \"maxDate\": \"2018/8/16 12:00:00\",\n   \"page\": 1,\n   \"length\": 10,\n   \"orderField\": \"ID\",\n   \"desc\": 1\n}",
           "type": "json"
         }
       ]
@@ -403,7 +403,7 @@
       "examples": [
         {
           "title": "Request-Example:",
-          "content": "{\n    http://domain/unitLogoUrl/1\n}",
+          "content": "{\n     \"http://39.108.114.59/unitLogoUrl/:unitID\"\n}",
           "type": "json"
         }
       ]
@@ -447,7 +447,7 @@
   },
   {
     "type": "GET",
-    "url": "/unit",
+    "url": "/unit/:unitID",
     "title": "获取公司",
     "name": "______",
     "group": "GET",
@@ -534,17 +534,17 @@
       "examples": [
         {
           "title": "Request-Example:",
-          "content": "{\n   \"unitID\": 1,\n   \"page\": 1,\n   \"length\": 10,\n   \"desc\": 1,\n   \"orderField\": \"ID\"\n}",
+          "content": "url: http://39.108.114.59/unit/1\n{\n   \"page\": 1,\n   \"length\": 10,\n   \"desc\": 1,\n   \"orderField\": \"ID\"\n}",
           "type": "json"
         },
         {
           "title": "Request-Example:",
-          "content": "{\n   \"field\": \"unitName\",\n   \"q\": \"铭贝科技\",\n   \"fasttips\": 0,\n   \"page\": 1,\n   \"length\": 10,\n   \"desc\": 1,\n   \"orderField\": \"ID\"\n}",
+          "content": "url: http://39.108.114.59/unit\n{\n   \"field\": \"unitName\",\n   \"q\": \"铭贝科技\",\n   \"fasttips\": 0,\n   \"page\": 1,\n   \"length\": 10,\n   \"desc\": 1,\n   \"orderField\": \"ID\"\n}",
           "type": "json"
         },
         {
           "title": "Request-Example:",
-          "content": "{\n   \"minDate\": \"2018/8/15 12:00:00\",\n   \"maxDate\": \"2018-8-16 13:37:39\",\n   \"page\": 1,\n   \"length\": 10,\n   \"desc\": 1,\n   \"orderField\": \"ID\"\n}",
+          "content": "url: http://39.108.114.59/unit\n{\n   \"minDate\": \"2018/8/15 12:00:00\",\n   \"maxDate\": \"2018-8-16 13:37:39\",\n   \"page\": 1,\n   \"length\": 10,\n   \"desc\": 1,\n   \"orderField\": \"ID\"\n}",
           "type": "json"
         }
       ]
@@ -712,6 +712,11 @@
         }
       ]
     },
+    "sampleRequest": [
+      {
+        "url": "http://39.108.114.59/login"
+      }
+    ],
     "filename": "src/controller/adminController.ts",
     "groupTitle": "Login"
   },

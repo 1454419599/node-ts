@@ -49,6 +49,8 @@ export default {
    * @apiSuccess (200) {String} msg 登录描述
    * @apiSuccess (200) {Object} [data] 登录成功后的账号信息
    * 
+   * @apiSampleRequest http://39.108.114.59/login
+   * 
    * @apiParamExample  {json} Request-Example:
    * {
    *     "affiliatedUnit": "重庆铭贝科技有限公司",
@@ -100,7 +102,6 @@ export default {
    * 
    * @apiSuccess (200) {Int} status 成功状态(0,1)
    * @apiSuccess (200) {String} msg 描述信息
-   * 
    * 
    * @apiSuccessExample {type} Success-Response:
    * {
@@ -357,7 +358,7 @@ export default {
 
   /**
    * 
-   * @api {GET} /unit 获取公司
+   * @api {GET} /unit/:unitID 获取公司
    * @apiName 获取公司信息
    * @apiGroup GET
    * @apiVersion  0.1.0
@@ -381,8 +382,8 @@ export default {
    * @apiSuccess (200) {Number} data.count 查询公司列表总数
    * 
    * @apiParamExample  {json} Request-Example:
+   * url: http://39.108.114.59/unit/1
    * {
-   *    "unitID": 1,
    *    "page": 1,
    *    "length": 10,
    *    "desc": 1,
@@ -390,6 +391,7 @@ export default {
    * }
    * 
    * @apiParamExample  {json} Request-Example:
+   * url: http://39.108.114.59/unit
    * {
    *    "field": "unitName",
    *    "q": "铭贝科技",
@@ -401,6 +403,7 @@ export default {
    * }
    * 
    * @apiParamExample  {json} Request-Example:
+   * url: http://39.108.114.59/unit
    * {
    *    "minDate": "2018/8/15 12:00:00",
    *    "maxDate": "2018-8-16 13:37:39",
@@ -484,7 +487,7 @@ export default {
    * 
    * @apiParamExample  {json} Request-Example:
    * {
-   *     http://domain/unitLogoUrl/1
+   *      "http://39.108.114.59/unitLogoUrl/:unitID"
    * }
    * 
    * 
@@ -508,10 +511,10 @@ export default {
       return result;
     })
   },
-
+  
   /**
    * 
-   * @api {GET} /account 获取账号信息
+   * @api {GET} /account/:unitID 获取账号信息
    * @apiName 获取账号
    * @apiGroup GET
    * @apiVersion 0.1.0
@@ -535,8 +538,8 @@ export default {
    * @apiSuccess (200) {Objec} [data.count] 账号信息数据总数
    * 
    * @apiParamExample {json} Request-Example:
+   * url: http://39.108.114.59/account/1
    * {
-   *    "unitID": 1,
    *    "page": 1,
    *    "length": 10,
    *    "orderField": "ID",
@@ -544,6 +547,7 @@ export default {
    * }
    * 
    * @apiParamExample {json} Request-Example:
+   * url: http://39.108.114.59/account
    * {
    *    "q": "ppp",
    *    "field": "userName",
@@ -555,6 +559,7 @@ export default {
    * }
    * 
    * @apiParamExample {json} Request-Example:
+   * url: http://39.108.114.59/account
    * {
    *    "minDate": "2018/8/15 12:00:00",
    *    "maxDate": "2018/8/16 12:00:00",

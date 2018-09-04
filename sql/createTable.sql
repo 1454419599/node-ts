@@ -108,5 +108,5 @@ CREATE TABLE IF NOT EXISTS `device_upkeep_table` (
 INSERT INTO `unit_base_table` (`unitName`,`unitType`,`linkman`,`TEL`,,`unitAddress`,`unitEmail`,`unitURL`,`logo`,`remark`,`parentUnitID`,`unitTreeID`,`adminAccountID`,`parentAdminAcountID`)
 VALUES ("重庆铭贝科技有限公司", "", "余小勇", "4006117011", "unitAddress", "unitEmail", "unitURL", "logo", "remark", 1, "1", "1", "1");
 
-INSERT INTO `account_info_table` (`icon`,`userName`,`password`,`role`,`extensionNumber`,`sex`,`realName`,`affiliatedUnitID`,`accountTreeID`)
-VALUES ("/usericon/favicon.ico","admin","9db186ebe0e665604441f1d65763fa31","超级管理员","8001","男","Administrator","1","1");
+INSERT INTO `account_info_table` (`icon`,`userName`,`password`,`role`,`extensionNumber`,`sex`,`realName`,`email`,`affiliatedUnitID`,`accountTreeID`)
+VALUES ("/usericon/favicon.ico","admin","9db186ebe0e665604441f1d65763fa31","超级管理员","8001","男","Administrator","cqmb@aa.com","1","1");

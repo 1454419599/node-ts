@@ -16,8 +16,7 @@ CREATE TABLE IF NOT EXISTS `unit_base_table` (
   `createTime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `lastChangeTime` datetime DEFAULT NULL COMMENT '修改时间',
   PRIMARY KEY (`ID`),
-  UNIQUE KEY `unitName` (`unitName`) USING BTREE,
-  KEY `ID` (`ID`)
+  UNIQUE KEY `unitName` (`unitName`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `account_info_table` (
@@ -87,7 +86,9 @@ CREATE TABLE IF NOT EXISTS `device_maintenance_table` (
   `maintenanceTime` datetime NOT NULL COMMENT '维修时间',
   `maintenanceContent` text NOT NULL COMMENT '维修内容',
   `createTime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '添加时间',
-  PRIMARY KEY (`ID`)
+  PRIMARY KEY (`ID`),
+  KEY `DTU` (`DTU`),
+  CONSTRAINT `device_maintenance_table_ibfk_1` FOREIGN KEY (`DTU`) REFERENCES `device_detail_table` (`dtuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `device_upkeep_table` (
@@ -101,11 +102,13 @@ CREATE TABLE IF NOT EXISTS `device_upkeep_table` (
   `nextUpkeepDate` datetime NOT NULL COMMENT '下次保养日期',
   `upkeepContent` text NOT NULL COMMENT '保养内容',
   `createTime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  PRIMARY KEY (`ID`)
+  PRIMARY KEY (`ID`),
+  KEY `DTU` (`DTU`),
+  CONSTRAINT `device_upkeep_table_ibfk_1` FOREIGN KEY (`DTU`) REFERENCES `device_detail_table` (`dtuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-INSERT INTO `unit_base_table` (`unitName`,`unitType`,`linkman`,`TEL`,,`unitAddress`,`unitEmail`,`unitURL`,`logo`,`remark`,`parentUnitID`,`unitTreeID`,`adminAccountID`,`parentAdminAcountID`)
-VALUES ("重庆铭贝科技有限公司", "", "余小勇", "4006117011", "unitAddress", "unitEmail", "unitURL", "logo", "remark", 1, "1", 1, 1);
+INSERT INTO `unit_base_table` (`unitName`, `unitType`, `linkman`, `TEL`, `unitAddress`, `unitEmail`, `unitURL`, `logo`, `remark`, `parentUnitID`, `unitTreeID`, `adminAccountID`, `parentAdminAcountID`) 
+VALUES ('重庆铭贝科技有限公司1', '', '余小勇', '4006117011', 'unitAddress', 'unitEmail', 'unitURL', 'logo', 'remark', 1, '1', 1, 1);
 
 INSERT INTO `account_info_table` (`icon`,`userName`,`password`,`role`,`extensionNumber`,`sex`,`realName`,`email`,`affiliatedUnitID`,`accountTreeID`)
 VALUES ("/usericon/favicon.ico","admin","9db186ebe0e665604441f1d65763fa31","超级管理员","8001","男","Administrator","cqmb@aa.com",1,"1");
